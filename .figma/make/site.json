@@ -1,0 +1,10 @@
+{
+  "description": "Track your menstrual cycle effortlessly with personalized insights and reminders, empowering individuals to manage their reproductive health effectively.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

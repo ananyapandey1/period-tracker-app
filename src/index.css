@@ -1,0 +1,61 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Outfit', system-ui, sans-serif;
+
+  --color-cream: #FDF6F0;
+  --color-blush: #F2D5D0;
+  --color-rose: #D4807A;
+  --color-terra: #c43a35;
+  --color-plum: #e75650;
+  --color-plum-deep: #b03e3a;
+  --color-muted: #F7EDE8;
+  --color-text: #2D1820;
+  --color-text-soft: #7A4F5C;
+  --color-divider: #E8D0C8;
+  --color-cycle-follicular: #A8C5B5;
+  --color-cycle-ovulation: #E8B87A;
+  --color-cycle-luteal: #C4A5C8;
+  --color-cycle-period: #D4807A;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: #f0dedd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+/* Hide scrollbar by default */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(123, 63, 94, 0.2);
+  border-radius: 2px;
+}
+
+/* Smooth transitions */
+* {
+  transition-property: background-color, color, opacity, transform, border-color;
+  transition-duration: 150ms;
+  transition-timing-function: ease;
+}
