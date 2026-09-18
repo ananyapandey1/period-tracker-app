@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useApp, ARTICLES } from '../context/AppContext'
+import { formatHeaderDate, getDaysUntilNextPeriod } from '../utils/dateUtils'
 
 type Tab = 'home' | 'calendar' | 'log' | 'insights' | 'shop'
 type PhaseKey = 'period' | 'follicular' | 'ovulation' | 'luteal'
@@ -379,14 +380,14 @@ export default function HomeScreen({ onNavigate }: { onNavigate: (tab: Tab) => v
               pointerEvents: 'none',
             }}
           >
-            {/* Top Line: Formatted Date */}
+            {/* Top Line: Dynamically Formatted Date */}
             <span style={{ fontSize: 13, fontWeight: 500, color: '#7A4F5C', letterSpacing: 0.2 }}>
-              18 September
+              {formatHeaderDate(new Date())}
             </span>
 
-            {/* Primary Highlight: Days until next period */}
+            {/* Primary Highlight: Dynamic Days until next period */}
             <span style={{ fontSize: 17, fontFamily: 'Fraunces, Georgia, serif', fontWeight: 700, color: '#2D1820', lineHeight: 1.25, margin: '4px 0' }}>
-              12 days until your next period
+              {getDaysUntilNextPeriod(new Date()).daysLeft} days until your next period
             </span>
 
             {/* Bottom Line: Active Phase Pill */}

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
+import { calculateCycleDay, getDaysUntilNextPeriod, formatFullDate } from '../utils/dateUtils'
 
 const DAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 
@@ -37,7 +38,7 @@ function getDayType(day: number, monthIndex: number): 'period' | 'follicular' | 
     if (day >= 20 && day <= 31) return 'luteal'
     if (day >= 9 && day <= 16) return 'follicular'
   } else {
-    // Generically fallback phase ranges for other months
+    // Dynamic fallback phase calculation for any month
     if (day >= 1 && day <= 5) return 'period'
     if (day >= 6 && day <= 13) return 'follicular'
     if (day >= 14 && day <= 16) return 'ovulation'
@@ -64,15 +65,18 @@ const LEGEND = [
 
 export default function CalendarScreen() {
   const { setActiveTab, setSelectedDate, logEntries, showToast } = useApp()
-  const [selectedYear, setSelectedYear] = useState(2026)
-  const [selectedMonthIdx, setSelectedMonthIdx] = useState(8) // 8 = September (0-indexed)
-  const [isMonthDropdownOpen, setIsMonthDropdownOpen] = useState(false)
-  const [selectedDay, setSelectedDay] = useState<number | null>(17)
-  const popoverRef = useRef<HTMLDivElement>(null)
+  
+  // Real-time client system date initialization
+  const now = new Date()
+  const todayYear = now.getFullYear()
+  const todayMonthIdx = now.getMonth()
+  const todayDay = now.getDate()
 
-  const todayYear = 2026
-  const todayMonthIdx = 8
-  const todayDay = 17
+  const [selectedYear, setSelectedYear] = useState(todayYear)
+  const [selectedMonthIdx, setSelectedMonthIdx] = useState(todayMonthIdx)
+  const [isMonthDropdownOpen, setIsMonthDropdownOpen] = useState(false)
+  const [selectedDay, setSelectedDay] = useState<number | null>(todayDay)
+  const popoverRef = useRef<HTMLDivElement>(null)
 
   // Handle outside click dismissal for Month/Year Popover
   useEffect(() => {
@@ -108,6 +112,13 @@ export default function CalendarScreen() {
   
   const hasLogEntry = formattedDateStr ? !!logEntries[formattedDateStr] : false
   const dayLog = hasLogEntry ? logEntries[formattedDateStr] : null
+
+  // Dynamic calculations for 4 KPI Cards
+  const currentDynamicCycleDay = calculateCycleDay(now, 28)
+  const { daysLeft: nextPeriodDaysLeft, expectedDateStr: nextPeriodExpectedDate } = getDaysUntilNextPeriod(now, 28)
+
+  const selectedDateObject = selectedDay ? new Date(selectedYear, selectedMonthIdx, selectedDay) : now
+  const dynamicSelectedDateHeader = formatFullDate(selectedDateObject)
 
   const handlePrevMonth = () => {
     if (selectedMonthIdx === 0) {
@@ -186,7 +197,7 @@ export default function CalendarScreen() {
                   gap: 12,
                 }}
               >
-                {/* Year Picker Selector */}
+                {/* Year Selector */}
                 <div>
                   <label style={{ fontSize: 10, fontWeight: 700, color: '#B89AA8', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 6 }}>
                     Select Year
@@ -253,7 +264,7 @@ export default function CalendarScreen() {
           </div>
         </div>
 
-        {/* Month Navigation Prev/Next Arrows */}
+        {/* Chevron Arrows */}
         <div style={{ display: 'flex', gap: 8 }}>
           <button
             onClick={handlePrevMonth}
@@ -298,7 +309,6 @@ export default function CalendarScreen() {
 
       {/* Calendar Grid Container */}
       <div style={{ padding: '0 20px' }}>
-        {/* Days Header */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 8 }}>
           {DAYS.map((d, i) => (
             <div key={i} style={{ textAlign: 'center', fontSize: 11, fontWeight: 600, color: '#B89AA8', letterSpacing: 0.5, padding: '4px 0' }}>
@@ -307,7 +317,7 @@ export default function CalendarScreen() {
           ))}
         </div>
 
-        {/* Modernized High-Contrast Outlined Days Grid */}
+        {/* Days Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px 6px' }}>
           {cells.map((day, i) => {
             if (!day) return <div key={i} />
@@ -349,7 +359,6 @@ export default function CalendarScreen() {
               >
                 <span>{day}</span>
 
-                {/* Logged Indicator Dot */}
                 {hasLogged && (
                   <div
                     style={{
@@ -363,7 +372,6 @@ export default function CalendarScreen() {
                   />
                 )}
 
-                {/* Today Highlight Indicator */}
                 {isToday && !hasLogged && (
                   <div
                     style={{
@@ -391,7 +399,7 @@ export default function CalendarScreen() {
           ))}
         </div>
 
-        {/* Selected Day Details Card */}
+        {/* Selected Day Details Card (Dynamically Formatted Date Header) */}
         {selectedDay && (
           <div
             style={{
@@ -405,7 +413,7 @@ export default function CalendarScreen() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
               <div>
                 <span style={{ fontSize: 11, color: '#B89AA8', fontWeight: 500 }}>
-                  {monthName} {selectedDay}, {selectedYear}
+                  {dynamicSelectedDateHeader}
                 </span>
                 <h4 style={{ margin: '2px 0 0', fontSize: 16, fontFamily: 'Fraunces, Georgia, serif', color: '#2D1820' }}>
                   {selectedInfo ? selectedInfo.label : 'Regular cycle day'}
@@ -449,7 +457,7 @@ export default function CalendarScreen() {
           </div>
         )}
 
-        {/* RESTORED 4 CYCLE KPI METRIC CARDS GRID (2x2) */}
+        {/* DYNAMIC 4 CYCLE KPI METRIC CARDS GRID (2x2) */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
           {/* Card 1: Cycle Length */}
           <div
@@ -499,7 +507,7 @@ export default function CalendarScreen() {
             </p>
           </div>
 
-          {/* Card 3: Current Cycle Day */}
+          {/* Card 3: Dynamic Current Cycle Day */}
           <div
             style={{
               background: '#FFFDFB',
@@ -516,14 +524,14 @@ export default function CalendarScreen() {
               Current Day
             </span>
             <p style={{ margin: '8px 0 2px', fontSize: 19, fontFamily: 'Fraunces, Georgia, serif', fontWeight: 600, color: '#2D1820' }}>
-              Day {selectedDay || 18}
+              Day {currentDynamicCycleDay}
             </p>
             <p style={{ margin: 0, fontSize: 11, color: '#7A4F5C', lineHeight: 1.3 }}>
               {selectedInfo ? selectedInfo.label : 'Luteal'} Phase
             </p>
           </div>
 
-          {/* Card 4: Next Period Estimate */}
+          {/* Card 4: Dynamic Next Period Estimate */}
           <div
             style={{
               background: '#FFFDFB',
@@ -540,10 +548,10 @@ export default function CalendarScreen() {
               Next Period
             </span>
             <p style={{ margin: '8px 0 2px', fontSize: 19, fontFamily: 'Fraunces, Georgia, serif', fontWeight: 600, color: '#2D1820' }}>
-              In 10 Days
+              In {nextPeriodDaysLeft} Days
             </p>
             <p style={{ margin: 0, fontSize: 11, color: '#7A4F5C', lineHeight: 1.3 }}>
-              Expected around Sep 27
+              Expected {nextPeriodExpectedDate}
             </p>
           </div>
         </div>

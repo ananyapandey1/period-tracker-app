@@ -306,9 +306,11 @@ const INITIAL_LOGS: Record<string, LogEntry> = {
   },
 }
 
+import { getTodayDateString } from '../utils/dateUtils'
+
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activeTab, setActiveTab] = useState<'home' | 'calendar' | 'log' | 'insights' | 'shop'>('home')
-  const [selectedDate, setSelectedDate] = useState('2026-09-17')
+  const [selectedDate, setSelectedDate] = useState(getTodayDateString())
   const [logEntries, setLogEntries] = useState<Record<string, LogEntry>>(INITIAL_LOGS)
   const [cart, setCart] = useState<CartItem[]>([
     { product: PRODUCTS[0], quantity: 1 },
