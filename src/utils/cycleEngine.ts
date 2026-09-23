@@ -37,3 +37,23 @@ export function getCycleState(lastPeriodDate: Date, cycleLength = 28, targetDate
 
   return { currentCycleDay, daysUntilNextPeriod, phase };
 }
+
+export function safeFormatDate(
+  dateVal: Date | string | number | null | undefined, 
+  fallback = 'Upcoming'
+): string {
+  if (!dateVal) return fallback;
+  
+  if (typeof dateVal === 'string' && isNaN(Date.parse(dateVal))) {
+    return dateVal;
+  }
+  
+  const d = dateVal instanceof Date ? dateVal : new Date(dateVal);
+  if (isNaN(d.getTime())) return fallback;
+
+  try {
+    return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(d);
+  } catch (err) {
+    return fallback;
+  }
+}

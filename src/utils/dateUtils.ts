@@ -1,5 +1,5 @@
 /**
- * Dynamic Date Utilities for Nua Period Tracking App
+ * Dynamic Date Utilities for Poppy Period Tracking App
  * Driven by real-time client date (`new Date()`)
  */
 

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useApp, ARTICLES } from '../context/AppContext'
 import { formatHeaderDate } from '../utils/dateUtils'
-import { getCycleState, CyclePhase, PHASE_DEFINITIONS } from '../utils/cycleEngine'
+import { getCycleState, CyclePhase, PHASE_DEFINITIONS, safeFormatDate } from '../utils/cycleEngine'
 
 type Tab = 'home' | 'calendar' | 'log' | 'insights'
 export type PhaseKey = CyclePhase
@@ -162,7 +162,8 @@ const QUICK_SYMPTOMS_CONFIG = [
 export default function HomeScreen({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
   const { setIsChatOpen, setSelectedArticle, showToast, restartOnboarding, lastPeriodStartDate } = useApp()
   const [activeSymptoms, setActiveSymptoms] = useState<string[]>([])
-    const cycleStatus = getCycleState(lastPeriodStartDate, 28, new Date())
+    const validLastPeriod = lastPeriodStartDate instanceof Date && !isNaN(lastPeriodStartDate.getTime()) ? lastPeriodStartDate : new Date();
+  const cycleStatus = getCycleState(validLastPeriod, 28, new Date())
   const [selectedPhase, setSelectedPhase] = useState<PhaseKey>(cycleStatus.phase.name)
   const [isInsightExpanded, setIsInsightExpanded] = useState(false)
   
@@ -465,7 +466,7 @@ export default function HomeScreen({ onNavigate }: { onNavigate: (tab: Tab) => v
               
               const startDate = new Date();
               startDate.setDate(startDate.getDate() + daysUntilNextStart);
-              const startDateStr = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(startDate);
+              const startDateStr = safeFormatDate(startDate);
               
               upcoming.push({
                 label: nextPhaseName + ' phase',
