@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
-import { calculateCycleDay, getDaysUntilNextPeriod, formatFullDate } from '../utils/dateUtils'
+import { formatFullDate } from '../utils/dateUtils'
+import { getCycleState, CyclePhase } from '../utils/cycleEngine'
 
 const DAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 
@@ -19,52 +20,27 @@ function getFirstDayOfWeek(year: number, monthZeroIndex: number) {
   return new Date(year, monthZeroIndex, 1).getDay()
 }
 
-function getDayType(day: number, monthIndex: number): 'period' | 'follicular' | 'ovulation' | 'luteal' | 'period-predicted' | null {
-  if (monthIndex === 8) { // September
-    if (day >= 1 && day <= 5) return 'period'
-    if (day >= 6 && day <= 13) return 'follicular'
-    if (day >= 14 && day <= 16) return 'ovulation'
-    if (day >= 17 && day <= 28) return 'luteal'
-    if (day >= 29 && day <= 30) return 'period-predicted'
-  } else if (monthIndex === 9) { // October
-    if (day >= 1 && day <= 3) return 'period-predicted'
-    if (day >= 27 && day <= 31) return 'period-predicted'
-    if (day >= 12 && day <= 14) return 'ovulation'
-    if (day >= 15 && day <= 26) return 'luteal'
-    if (day >= 4 && day <= 11) return 'follicular'
-  } else if (monthIndex === 7) { // August
-    if (day >= 4 && day <= 8) return 'period'
-    if (day >= 17 && day <= 19) return 'ovulation'
-    if (day >= 20 && day <= 31) return 'luteal'
-    if (day >= 9 && day <= 16) return 'follicular'
-  } else {
-    // Dynamic fallback phase calculation for any month
-    if (day >= 1 && day <= 5) return 'period'
-    if (day >= 6 && day <= 13) return 'follicular'
-    if (day >= 14 && day <= 16) return 'ovulation'
-    if (day >= 17 && day <= 28) return 'luteal'
-  }
-  return null
-}
+
+
+
 
 // Minimalist High-Contrast Outlined Tile Config
-const PHASE_STYLES: Record<string, { borderColor: string; bgTint: string; textColor: string; label: string }> = {
-  period: { borderColor: '#E75650', bgTint: 'rgba(231, 86, 80, 0.08)', textColor: '#E75650', label: 'Period' },
-  follicular: { borderColor: '#2A9D8F', bgTint: 'rgba(42, 157, 143, 0.08)', textColor: '#1B635A', label: 'Follicular' },
-  ovulation: { borderColor: '#E8B87A', bgTint: 'rgba(232, 184, 122, 0.12)', textColor: '#9C6818', label: 'Ovulation' },
-  luteal: { borderColor: '#D97706', bgTint: 'rgba(217, 119, 6, 0.08)', textColor: '#92400E', label: 'Luteal' },
-  'period-predicted': { borderColor: '#E75650', bgTint: 'rgba(231, 86, 80, 0.04)', textColor: '#C43A35', label: 'Period (predicted)' },
+const PHASE_STYLES: Record<CyclePhase, { borderColor: string; bgTint: string; textColor: string; label: string }> = {
+  Menstrual: { borderColor: '#C86D6B', bgTint: 'rgba(200, 109, 107, 0.08)', textColor: '#C86D6B', label: 'Menstrual' },
+  Follicular: { borderColor: '#8BAA9B', bgTint: 'rgba(139, 170, 155, 0.08)', textColor: '#8BAA9B', label: 'Follicular' },
+  Ovulation: { borderColor: '#E2A966', bgTint: 'rgba(226, 169, 102, 0.12)', textColor: '#E2A966', label: 'Ovulation' },
+  Luteal: { borderColor: '#B39ABF', bgTint: 'rgba(179, 154, 191, 0.08)', textColor: '#B39ABF', label: 'Luteal' }
 }
 
 const LEGEND = [
-  { key: 'period', label: 'Period', color: '#E75650' },
-  { key: 'follicular', label: 'Follicular', color: '#2A9D8F' },
-  { key: 'ovulation', label: 'Ovulation', color: '#E8B87A' },
-  { key: 'luteal', label: 'Luteal', color: '#D97706' },
+  { key: 'Menstrual', label: 'Menstrual', color: '#C86D6B' },
+  { key: 'Follicular', label: 'Follicular', color: '#8BAA9B' },
+  { key: 'Ovulation', label: 'Ovulation', color: '#E2A966' },
+  { key: 'Luteal', label: 'Luteal', color: '#B39ABF' },
 ]
 
 export default function CalendarScreen() {
-  const { setActiveTab, setSelectedDate, logEntries, showToast } = useApp()
+  const { setActiveTab, setSelectedDate, logEntries, showToast, lastPeriodStartDate } = useApp()
   
   // Real-time client system date initialization
   const now = new Date()
@@ -103,8 +79,8 @@ export default function CalendarScreen() {
   while (cells.length % 7 !== 0) cells.push(null)
 
   const monthName = MONTH_NAMES[selectedMonthIdx]
-  const selectedType = selectedDay ? getDayType(selectedDay, selectedMonthIdx) : null
-  const selectedInfo = selectedType ? PHASE_STYLES[selectedType] : null
+  const selectedCycleState = selectedDay ? getCycleState(lastPeriodStartDate, 28, new Date(selectedYear, selectedMonthIdx, selectedDay)) : null
+  const selectedInfo = selectedCycleState ? PHASE_STYLES[selectedCycleState.phase.name] : null
 
   const formattedMonthStr = selectedMonthIdx + 1 < 10 ? `0${selectedMonthIdx + 1}` : `${selectedMonthIdx + 1}`
   const formattedDayStr = selectedDay ? (selectedDay < 10 ? `0${selectedDay}` : `${selectedDay}`) : ''
@@ -114,8 +90,12 @@ export default function CalendarScreen() {
   const dayLog = hasLogEntry ? logEntries[formattedDateStr] : null
 
   // Dynamic calculations for 4 KPI Cards
-  const currentDynamicCycleDay = calculateCycleDay(now, 28)
-  const { daysLeft: nextPeriodDaysLeft, expectedDateStr: nextPeriodExpectedDate } = getDaysUntilNextPeriod(now, 28)
+  const currentStatus = getCycleState(lastPeriodStartDate, 28, now)
+  const currentDynamicCycleDay = currentStatus.currentCycleDay
+  const nextPeriodDaysLeft = currentStatus.daysUntilNextPeriod
+  const nextDate = new Date(now)
+  nextDate.setDate(now.getDate() + nextPeriodDaysLeft)
+  const nextPeriodExpectedDate = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(nextDate)
 
   const selectedDateObject = selectedDay ? new Date(selectedYear, selectedMonthIdx, selectedDay) : now
   const dynamicSelectedDateHeader = formatFullDate(selectedDateObject)
@@ -174,7 +154,7 @@ export default function CalendarScreen() {
               aria-label="Select month and year"
             >
               <span>{monthName} {selectedYear}</span>
-              <span style={{ fontSize: 14, color: '#e75650', transform: isMonthDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }}>▾</span>
+              <span style={{ fontSize: 14, color: '#F8C8DC', transform: isMonthDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }}>▾</span>
             </button>
 
             {/* DUAL SELECTOR POPOVER (MONTH & YEAR) */}
@@ -213,8 +193,8 @@ export default function CalendarScreen() {
                         style={{
                           padding: '4px 10px',
                           borderRadius: 12,
-                          background: selectedYear === y ? '#e75650' : '#F7EDE8',
-                          border: `1px solid ${selectedYear === y ? '#b03e3a' : '#E8D0C8'}`,
+                          background: selectedYear === y ? '#F8C8DC' : '#F7EDE8',
+                          border: `1px solid ${selectedYear === y ? '#F8C8DC' : '#E8D0C8'}`,
                           color: selectedYear === y ? 'white' : '#2D1820',
                           fontSize: 11,
                           fontWeight: selectedYear === y ? 700 : 500,
@@ -247,10 +227,10 @@ export default function CalendarScreen() {
                           borderRadius: 10,
                           textAlign: 'center',
                           background: selectedMonthIdx === idx ? '#F7EDE8' : 'white',
-                          border: `1px solid ${selectedMonthIdx === idx ? '#e75650' : '#E8D0C8'}`,
+                          border: `1px solid ${selectedMonthIdx === idx ? '#F8C8DC' : '#E8D0C8'}`,
                           fontSize: 11,
                           fontWeight: selectedMonthIdx === idx ? 700 : 400,
-                          color: selectedMonthIdx === idx ? '#e75650' : '#2D1820',
+                          color: selectedMonthIdx === idx ? '#F8C8DC' : '#2D1820',
                           cursor: 'pointer',
                         }}
                       >
@@ -276,7 +256,7 @@ export default function CalendarScreen() {
               border: '1px solid #E8D0C8',
               cursor: 'pointer',
               fontSize: 16,
-              color: '#e75650',
+              color: '#F8C8DC',
               fontWeight: 600,
               display: 'flex',
               alignItems: 'center',
@@ -295,7 +275,7 @@ export default function CalendarScreen() {
               border: '1px solid #E8D0C8',
               cursor: 'pointer',
               fontSize: 16,
-              color: '#e75650',
+              color: '#F8C8DC',
               fontWeight: 600,
               display: 'flex',
               alignItems: 'center',
@@ -321,8 +301,8 @@ export default function CalendarScreen() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px 6px' }}>
           {cells.map((day, i) => {
             if (!day) return <div key={i} />
-            const type = getDayType(day, selectedMonthIdx)
-            const styleConfig = type ? PHASE_STYLES[type] : null
+            const dayCycleState = getCycleState(lastPeriodStartDate, 28, new Date(selectedYear, selectedMonthIdx, day))
+            const styleConfig = PHASE_STYLES[dayCycleState.phase.name]
             const isSelected = selectedDay === day
             const isToday = selectedYear === todayYear && selectedMonthIdx === todayMonthIdx && day === todayDay
             const cellDateKey = `${selectedYear}-${formattedMonthStr}-${day < 10 ? '0' + day : day}`
@@ -367,7 +347,7 @@ export default function CalendarScreen() {
                       width: 4,
                       height: 4,
                       borderRadius: '50%',
-                      background: '#e75650',
+                      background: '#F8C8DC',
                     }}
                   />
                 )}
@@ -425,8 +405,8 @@ export default function CalendarScreen() {
                 style={{
                   padding: '6px 14px',
                   borderRadius: 20,
-                  background: 'linear-gradient(135deg, #e75650, #c43a35)',
-                  color: 'white',
+                  background: 'linear-gradient(135deg, #F8C8DC, #c43a35)',
+                  color: '#2D1820',
                   fontSize: 11,
                   fontWeight: 600,
                   border: 'none',
@@ -440,7 +420,7 @@ export default function CalendarScreen() {
 
             {hasLogEntry && dayLog ? (
               <div style={{ fontSize: 12, color: '#7A4F5C', background: '#FDF6F0', borderRadius: 12, padding: '10px 12px', border: '1px solid #E8D0C8' }}>
-                <p style={{ margin: '0 0 4px', fontWeight: 600, color: '#e75650' }}>Recorded symptoms:</p>
+                <p style={{ margin: '0 0 4px', fontWeight: 600, color: '#F8C8DC' }}>Recorded symptoms:</p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                   {dayLog.flow && <span style={{ background: '#F2D5D0', padding: '2px 8px', borderRadius: 10, fontSize: 10 }}>Flow: {dayLog.flow}</span>}
                   {dayLog.physical.map(p => (
@@ -472,7 +452,7 @@ export default function CalendarScreen() {
               justifyContent: 'space-between',
             }}
           >
-            <span style={{ fontSize: 9, fontWeight: 700, color: '#e75650', letterSpacing: 0.5, textTransform: 'uppercase', background: '#F2D5D0', padding: '2px 8px', borderRadius: 10, width: 'fit-content' }}>
+            <span style={{ fontSize: 9, fontWeight: 700, color: '#F8C8DC', letterSpacing: 0.5, textTransform: 'uppercase', background: '#F2D5D0', padding: '2px 8px', borderRadius: 10, width: 'fit-content' }}>
               Cycle Length
             </span>
             <p style={{ margin: '8px 0 2px', fontSize: 19, fontFamily: 'Fraunces, Georgia, serif', fontWeight: 600, color: '#2D1820' }}>

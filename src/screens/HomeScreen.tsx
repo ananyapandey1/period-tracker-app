@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useApp, ARTICLES } from '../context/AppContext'
-import { formatHeaderDate, getDaysUntilNextPeriod } from '../utils/dateUtils'
+import { formatHeaderDate } from '../utils/dateUtils'
+import { getCycleState, CyclePhase, PHASE_DEFINITIONS } from '../utils/cycleEngine'
 
-type Tab = 'home' | 'calendar' | 'log' | 'insights' | 'shop'
-type PhaseKey = 'period' | 'follicular' | 'ovulation' | 'luteal'
+type Tab = 'home' | 'calendar' | 'log' | 'insights'
+export type PhaseKey = CyclePhase
 
 interface PhaseDetail {
   key: PhaseKey
@@ -11,50 +12,67 @@ interface PhaseDetail {
   dateRange: string
   days: string
   color: string
-  hormones: string
-  insightSnippet: string
+  whyItHappens: string
+  symptoms: string[]
 }
 
-const PHASES_DATA: Record<PhaseKey, PhaseDetail> = {
-  period: {
-    key: 'period',
+export const PHASES_DATA: Record<PhaseKey, PhaseDetail> = {
+  Menstrual: {
+    key: 'Menstrual',
     name: 'Menstrual phase',
-    dateRange: 'Sep 1 – Sep 5',
-    days: 'Days 1–5',
-    color: '#D4807A',
-    hormones: 'Estrogen and progesterone are at their lowest. The uterine lining sheds.',
-    insightSnippet: 'Estrogen and progesterone are at their lowest. Rest when needed, stay warm, and focus on gentle recovery.',
+    dateRange: 'Sep 1–Sep 5',
+    days: '1-5',
+    color: '#C86D6B',
+    whyItHappens: 'Rest & uterine shedding, low estrogen/progesterone.',
+    symptoms: [
+      "Cramps and lower back pain from uterine contractions",
+      "Fatigue and lower energy levels",
+      "Brain fog or difficulty concentrating"
+    ]
   },
-  follicular: {
-    key: 'follicular',
+  Follicular: {
+    key: 'Follicular',
     name: 'Follicular phase',
-    dateRange: 'Sep 6 – Sep 13',
-    days: 'Days 6–13',
-    color: '#A8C5B5',
-    hormones: 'FSH stimulates ovarian follicles; estrogen rises steadily.',
-    insightSnippet: 'Estrogen is climbing steadily. Expect rising stamina, clearer focus, and increasing energy for new activities.',
+    dateRange: 'Sep 6–Sep 13',
+    days: '6-13',
+    color: '#8BAA9B',
+    whyItHappens: 'Rising estradiol, boosted energy, follicular development.',
+    symptoms: [
+      "Increased energy and improved mood",
+      "Clearer skin and healthy glow",
+      "Higher libido and motivation"
+    ]
   },
-  ovulation: {
-    key: 'ovulation',
-    name: 'Ovulation phase',
-    dateRange: 'Sep 14 – Sep 16',
-    days: 'Days 14–16',
-    color: '#E8B87A',
-    hormones: 'LH surge triggers egg release; estrogen peaks before ovulation.',
-    insightSnippet: 'Luteinizing hormone surges to release an egg. Energy and fertility reach their monthly peak.',
+  Ovulation: {
+    key: 'Ovulation',
+    name: 'Ovulation',
+    dateRange: 'Sep 14–Sep 15',
+    days: '14-15',
+    color: '#E2A966',
+    whyItHappens: 'LH surge, peak estrogen, optimal fertile window.',
+    symptoms: [
+      "Peak energy and confidence",
+      "Mild pelvic twinges (mittelschmerz)",
+      "Increased cervical fluid"
+    ]
   },
-  luteal: {
-    key: 'luteal',
+  Luteal: {
+    key: 'Luteal',
     name: 'Luteal phase',
-    dateRange: 'Sep 17 – Sep 28',
-    days: 'Days 17–28',
-    color: '#C4A5C8',
-    hormones: 'Corpus luteum secretes progesterone, which rises then drops if no pregnancy occurs.',
-    insightSnippet: 'Progesterone peaks then drops if conception has not occurred. You may feel more introspective as your period approaches.',
-  },
+    dateRange: 'Sep 16–Sep 28',
+    days: '16-28',
+    color: '#B39ABF',
+    whyItHappens: 'Elevated progesterone, metabolic elevation, potential PMS changes.',
+    symptoms: [
+      "Bloating and breast tenderness due to water retention",
+      "Mood swings, irritability, or increased anxiety",
+      "Cravings for carbohydrate-rich or sweet foods",
+      "Lower energy levels and disturbed sleep patterns"
+    ]
+  }
 }
 
-const COMMON_DESCRIPTIONS: Record<PhaseKey, string[]> = {
+export const COMMON_DESCRIPTIONS: Record<PhaseKey, string[]> = {
   period: [
     'Estrogen and progesterone are at their lowest, which can leave you feeling low on energy.',
     'Cramping and lower back pain are common as the uterus sheds its lining.',
@@ -97,9 +115,8 @@ const QUICK_SYMPTOMS_CONFIG = [
     label: 'Bloating',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2" />
-        <path d="M9.6 4.6A2 2 0 1 1 11 8H2" />
-        <path d="M12.6 19.4A2 2 0 1 0 14 16H2" />
+        <circle cx="12" cy="12" r="7" />
+        <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
       </svg>
     ),
   },
@@ -136,18 +153,19 @@ const QUICK_SYMPTOMS_CONFIG = [
     label: 'Tender',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 2a7 7 0 0 0-7 7c0 4.5 7 13 7 13s7-8.5 7-13a7 7 0 0 0-7-7z" />
-        <circle cx="12" cy="9" r="2.5" />
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
       </svg>
     ),
   },
 ]
 
 export default function HomeScreen({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
-  const { setIsChatOpen, setSelectedArticle, showToast } = useApp()
+  const { setIsChatOpen, setSelectedArticle, showToast, restartOnboarding, lastPeriodStartDate } = useApp()
   const [activeSymptoms, setActiveSymptoms] = useState<string[]>([])
-  const [selectedPhase, setSelectedPhase] = useState<PhaseKey>('luteal')
+    const cycleStatus = getCycleState(lastPeriodStartDate, 28, new Date())
+  const [selectedPhase, setSelectedPhase] = useState<PhaseKey>(cycleStatus.phase.name)
   const [isInsightExpanded, setIsInsightExpanded] = useState(false)
+  
 
   const selectedPhaseData = PHASES_DATA[selectedPhase]
 
@@ -174,62 +192,15 @@ export default function HomeScreen({ onNavigate }: { onNavigate: (tab: Tab) => v
             </h1>
           </div>
 
-          {/* Action Icons: Support Chat -> Rewards -> Vector Female Avatar */}
+          {/* Action Icons: Vector Female Avatar */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            {/* Interactive Support Chat Button */}
-            <button
-              onClick={() => setIsChatOpen(true)}
-              aria-label="Open AI support chat"
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: '50%',
-                background: '#F7EDE8',
-                border: '1px solid #E8D0C8',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: 0,
-                boxShadow: '0 2px 8px rgba(45,24,32,0.06)',
-              }}
-            >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e75650" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-              </svg>
-            </button>
-
-            {/* Rewards Icon Button */}
-            <button
-              onClick={() => showToast('🎉 Rewards: You have 150 Nua Wellness points!')}
-              aria-label="View rewards"
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: '50%',
-                background: '#F7EDE8',
-                border: '1px solid #E8D0C8',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: 0,
-                boxShadow: '0 2px 8px rgba(45,24,32,0.06)',
-              }}
-            >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7A4F5C" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 12 20 22 4 22 4 12" />
-                <rect x="2" y="7" width="20" height="5" rx="1" />
-                <line x1="12" y1="22" x2="12" y2="7" />
-                <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
-                <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
-              </svg>
-            </button>
-
             {/* Vector-Style Illustrated Female Avatar */}
             <button
               aria-label="Profile settings"
-              onClick={() => showToast('Profile settings loaded')}
+              onClick={() => {
+                showToast('Re-entering Poppy onboarding flow...')
+                restartOnboarding()
+              }}
               style={{
                 width: 44,
                 height: 44,
@@ -249,7 +220,7 @@ export default function HomeScreen({ onNavigate }: { onNavigate: (tab: Tab) => v
                   height: 42,
                   borderRadius: '50%',
                   background: 'linear-gradient(135deg, #F2D5D0, #E8B87A)',
-                  border: '2px solid #e75650',
+                  border: '2px solid #F8C8DC',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -262,7 +233,7 @@ export default function HomeScreen({ onNavigate }: { onNavigate: (tab: Tab) => v
                   <path d="M18 7C14 7 12 10 12 13C12 15 13 17 14.5 18C13.5 19 11 21 10 24C9 27 10 32 18 32C26 32 27 27 26 24C25 21 22.5 19 21.5 18C23 17 24 15 24 13C24 10 22 7 18 7Z" fill="#2D1820" fillOpacity="0.8" />
                   <ellipse cx="18" cy="14" rx="5" ry="5.5" fill="#FFE2D6" />
                   <path d="M14 11C15 9.5 17 9 18 9C19 9 21 9.5 22 11" stroke="#2D1820" strokeWidth="1.2" strokeLinecap="round" />
-                  <path d="M11 26C11 22 14 21 18 21C22 21 25 22 25 26V30H11V26Z" fill="#e75650" />
+                  <path d="M11 26C11 22 14 21 18 21C22 21 25 22 25 26V30H11V26Z" fill="#F8C8DC" />
                 </svg>
               </div>
             </button>
@@ -271,7 +242,7 @@ export default function HomeScreen({ onNavigate }: { onNavigate: (tab: Tab) => v
       </div>
 
       {/* REFACTORED CYCLE DIAL & RING COMPONENT */}
-      <div style={{ padding: '16px 24px', display: 'flex', justifyContent: 'center' }}>
+      <div style={{ padding: '16px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <div
           style={{
             position: 'relative',
@@ -282,7 +253,7 @@ export default function HomeScreen({ onNavigate }: { onNavigate: (tab: Tab) => v
             alignItems: 'center',
             justifyContent: 'center',
           }}
-          onClick={() => setSelectedPhase('luteal')}
+          onClick={() => setSelectedPhase('Luteal')}
           role="button"
           aria-label="Interactive cycle ring dial"
         >
@@ -296,13 +267,13 @@ export default function HomeScreen({ onNavigate }: { onNavigate: (tab: Tab) => v
               cy="110"
               r="86"
               fill="none"
-              stroke="#D4807A"
+              stroke="#C86D6B"
               strokeWidth={selectedPhase === 'period' ? 18 : 14}
               strokeLinecap="round"
               strokeDasharray="96.5 443.9"
               strokeDashoffset="0"
               transform="rotate(-90 110 110)"
-              onClick={(e) => { e.stopPropagation(); setSelectedPhase('period'); }}
+              onClick={(e) => { e.stopPropagation(); setSelectedPhase('Menstrual'); }}
               style={{ cursor: 'pointer', transition: 'stroke-width 0.2s ease' }}
             />
 
@@ -312,13 +283,13 @@ export default function HomeScreen({ onNavigate }: { onNavigate: (tab: Tab) => v
               cy="110"
               r="86"
               fill="none"
-              stroke="#A8C5B5"
+              stroke="#8BAA9B"
               strokeWidth={selectedPhase === 'follicular' ? 18 : 14}
               strokeLinecap="round"
               strokeDasharray="154.5 385.9"
               strokeDashoffset="-96.5"
               transform="rotate(-90 110 110)"
-              onClick={(e) => { e.stopPropagation(); setSelectedPhase('follicular'); }}
+              onClick={(e) => { e.stopPropagation(); setSelectedPhase('Follicular'); }}
               style={{ cursor: 'pointer', transition: 'stroke-width 0.2s ease' }}
             />
 
@@ -328,13 +299,13 @@ export default function HomeScreen({ onNavigate }: { onNavigate: (tab: Tab) => v
               cy="110"
               r="86"
               fill="none"
-              stroke="#E8B87A"
+              stroke="#E2A966"
               strokeWidth={selectedPhase === 'ovulation' ? 18 : 14}
               strokeLinecap="round"
               strokeDasharray="57.8 482.6"
               strokeDashoffset="-251.0"
               transform="rotate(-90 110 110)"
-              onClick={(e) => { e.stopPropagation(); setSelectedPhase('ovulation'); }}
+              onClick={(e) => { e.stopPropagation(); setSelectedPhase('Ovulation'); }}
               style={{ cursor: 'pointer', transition: 'stroke-width 0.2s ease' }}
             />
 
@@ -344,13 +315,13 @@ export default function HomeScreen({ onNavigate }: { onNavigate: (tab: Tab) => v
               cy="110"
               r="86"
               fill="none"
-              stroke="#C4A5C8"
+              stroke="#B39ABF"
               strokeWidth={selectedPhase === 'luteal' ? 18 : 14}
               strokeLinecap="round"
               strokeDasharray="231.6 308.8"
               strokeDashoffset="-308.8"
               transform="rotate(-90 110 110)"
-              onClick={(e) => { e.stopPropagation(); setSelectedPhase('luteal'); }}
+              onClick={(e) => { e.stopPropagation(); setSelectedPhase('Luteal'); }}
               style={{ cursor: 'pointer', transition: 'stroke-width 0.2s ease' }}
             />
 
@@ -359,8 +330,8 @@ export default function HomeScreen({ onNavigate }: { onNavigate: (tab: Tab) => v
               cx="110"
               cy="24"
               r="7"
-              fill="#e75650"
-              stroke="white"
+              fill="#F8C8DC"
+              stroke="#2D1820"
               strokeWidth="2.5"
               transform="rotate(142 110 110)"
             />
@@ -387,144 +358,42 @@ export default function HomeScreen({ onNavigate }: { onNavigate: (tab: Tab) => v
 
             {/* Primary Highlight: Dynamic Days until next period */}
             <span style={{ fontSize: 17, fontFamily: 'Fraunces, Georgia, serif', fontWeight: 700, color: '#2D1820', lineHeight: 1.25, margin: '4px 0' }}>
-              {getDaysUntilNextPeriod(new Date()).daysLeft} days until your next period
+              {cycleStatus.daysUntilNextPeriod} days until your next period
             </span>
 
-            {/* Bottom Line: Active Phase Pill */}
-            <div style={{ background: '#F7EDE8', border: '1px solid #E8D0C8', borderRadius: 12, padding: '3px 10px', marginTop: 2 }}>
-              <span style={{ fontSize: 11, fontWeight: 600, color: '#e75650' }}>
-                {selectedPhaseData.name}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* PHASE INSIGHT CARD */}
-      <div style={{ padding: '0 24px 16px' }}>
-        <div
-          style={{
-            background: '#F7EDE8',
-            borderRadius: 16,
-            padding: '14px 16px',
-            border: '1px solid #E8D0C8',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 8,
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-            <span style={{ fontSize: 20 }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e75650" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="16" x2="12" y2="12" />
-                <line x1="12" y1="8" x2="12.01" y2="8" />
-              </svg>
+            {/* Bottom Line: Active Phase Text */}
+            <span style={{ fontSize: 13, fontWeight: 600, color: cycleStatus.phase.color, letterSpacing: '0.02em', textTransform: 'capitalize', marginTop: 4 }}>
+              {cycleStatus.phase.name} phase
             </span>
-            <div style={{ flex: 1 }}>
-              <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#e75650' }}>
-                {selectedPhaseData.name} insight
-              </p>
-              <p
-                style={{
-                  margin: '3px 0 0',
-                  fontSize: 12,
-                  color: '#7A4F5C',
-                  lineHeight: 1.5,
-                  display: '-webkit-box',
-                  WebkitLineClamp: isInsightExpanded ? 'none' : 3,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                }}
-              >
-                {selectedPhaseData.insightSnippet}
-                {isInsightExpanded && (
-                  <span>
-                    {' '}{selectedPhaseData.hormones}
-                  </span>
-                )}
-              </p>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 2 }}>
-            <button
-              onClick={() => setIsInsightExpanded(prev => !prev)}
-              aria-label="Toggle full insight description"
-              style={{
-                background: 'none',
-                border: 'none',
-                fontSize: 12,
-                color: '#e75650',
-                fontWeight: 500,
-                cursor: 'pointer',
-                padding: '4px 8px',
-                margin: '-4px -8px',
-                minWidth: 44,
-                minHeight: 44,
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              {isInsightExpanded ? 'Show less ↑' : 'View more →'}
-            </button>
           </div>
         </div>
-      </div>
-
-      {/* REFACTORED COMMON EXPERIENCES SECTION */}
-      <div style={{ padding: '0 24px 20px' }}>
-        <h3 style={{ margin: '0 0 10px', fontSize: 14, fontWeight: 600, color: '#2D1820', letterSpacing: 0.2 }}>
-          Common experiences in {selectedPhaseData.name.replace(' phase', '')} phase
-        </h3>
-
-        {/* Vertical Bullet List */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: 4 }}>
-          {COMMON_DESCRIPTIONS[selectedPhase].map((sentence, index) => (
-            <div key={index} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-              <span style={{ color: '#e75650', fontSize: 14, lineHeight: 1.5 }}>•</span>
-              <p style={{ margin: 0, fontSize: 12, color: '#7A4F5C', lineHeight: 1.5 }}>
-                {sentence}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        {/* Updated Click Handler: Routes to Dedicated Luteal Phase Article */}
-        <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: 10 }}>
-          <button
-            onClick={openLutealArticle}
-            style={{
-              background: 'none',
-              border: 'none',
-              fontSize: 12,
-              color: '#e75650',
-              fontWeight: 600,
-              cursor: 'pointer',
-              padding: 0,
-              minHeight: 44,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 4,
-            }}
-          >
-            Read: Understanding Your Luteal Phase →
-          </button>
-        </div>
+          {/* Cycle Ring Legend */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 16, flexWrap: 'wrap' }}>
+            {[
+              { key: 'Menstrual', label: 'Menstrual', color: '#C86D6B' },
+              { key: 'Follicular', label: 'Follicular', color: '#8BAA9B' },
+              { key: 'Ovulation', label: 'Ovulation', color: '#E2A966' },
+              { key: 'Luteal', label: 'Luteal', color: '#B39ABF' }
+            ].map(phase => (
+              <div key={phase.key} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: phase.color }} />
+                <span style={{ fontSize: 11, color: '#7A4F5C', fontWeight: 500 }}>{phase.label}</span>
+              </div>
+            ))}
+          </div>
       </div>
 
       {/* QUICK SYMPTOMS LOG */}
       <div style={{ padding: '0 24px 20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <h3 style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#2D1820' }}>Quick log</h3>
+          <h3 style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#2D1820' }}>Tap to log quick symptoms</h3>
           <button
             onClick={() => onNavigate('log')}
             style={{
               background: 'none',
               border: 'none',
               fontSize: 12,
-              color: '#e75650',
+              color: '#9B3856',
               fontWeight: 500,
               cursor: 'pointer',
               padding: 0,
@@ -549,21 +418,21 @@ export default function HomeScreen({ onNavigate }: { onNavigate: (tab: Tab) => v
                 style={{
                   borderRadius: 12,
                   padding: '10px 8px',
-                  background: isActive ? '#e75650' : '#F7EDE8',
-                  border: `1px solid ${isActive ? '#b03e3a' : '#E8D0C8'}`,
+                  background: isActive ? '#F8C8DC' : '#F7EDE8',
+                  border: `1px solid ${isActive ? '#F8C8DC' : '#E8D0C8'}`,
                   cursor: 'pointer',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   gap: 6,
                   minHeight: 44,
-                  color: isActive ? 'white' : '#7A4F5C',
+                  color: isActive ? '#2D1820' : '#7A4F5C',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {s.icon}
                 </div>
-                <span style={{ fontSize: 11, fontWeight: 500, color: isActive ? 'white' : '#7A4F5C' }}>
+                <span style={{ fontSize: 11, fontWeight: 500, color: isActive ? '#2D1820' : '#7A4F5C' }}>
                   {s.label}
                 </span>
               </button>
@@ -572,38 +441,155 @@ export default function HomeScreen({ onNavigate }: { onNavigate: (tab: Tab) => v
         </div>
       </div>
 
-      {/* UPCOMING EVENTS */}
+      {/* UPCOMING PHASES */}
       <div style={{ padding: '0 24px 32px' }}>
-        <h3 style={{ margin: '0 0 12px', fontSize: 14, fontWeight: 600, color: '#2D1820' }}>Upcoming</h3>
+        <h3 style={{ margin: '0 0 12px', fontSize: 14, fontWeight: 600, color: '#2D1820' }}>Upcoming Phases</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {[
-            { label: 'Fertile window', date: 'Sep 27–Oct 1', color: '#E8B87A' },
-            { label: 'Period expected', date: 'Oct 27', color: '#D4807A' },
-            { label: 'Ovulation day', date: 'Sep 29', color: '#A8C5B5' },
-          ].map((item, i) => (
-            <div
-              key={i}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '12px 16px',
-                background: '#F7EDE8',
-                borderRadius: 12,
-                border: '1px solid #E8D0C8',
-                minHeight: 44,
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: item.color, flexShrink: 0 }} />
-                <span style={{ fontSize: 13, color: '#2D1820', fontWeight: 500 }}>{item.label}</span>
+          {(() => {
+            // Calculate next sequential phases chronologically relative to currentCycleDay
+            const phaseOrder: CyclePhase[] = ['Menstrual', 'Follicular', 'Ovulation', 'Luteal'];
+            const currentIndex = phaseOrder.indexOf(cycleStatus.phase.name);
+            const upcoming: { label: string, color: string, date: string }[] = [];
+            
+            for (let i = 1; i <= 3; i++) {
+              const nextPhaseName = phaseOrder[(currentIndex + i) % 4];
+              const nextPhaseDef = PHASE_DEFINITIONS[nextPhaseName];
+              
+              // Find days until this phase starts
+              let daysUntilNextStart = 0;
+              if (nextPhaseDef.startDay > cycleStatus.currentCycleDay) {
+                daysUntilNextStart = nextPhaseDef.startDay - cycleStatus.currentCycleDay;
+              } else {
+                daysUntilNextStart = (28 - cycleStatus.currentCycleDay) + nextPhaseDef.startDay;
+              }
+              
+              const startDate = new Date();
+              startDate.setDate(startDate.getDate() + daysUntilNextStart);
+              const startDateStr = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(startDate);
+              
+              upcoming.push({
+                label: nextPhaseName + ' phase',
+                color: nextPhaseDef.color,
+                date: `Starts ${startDateStr}`
+              });
+            }
+            
+            return upcoming.map((item, i) => (
+              <div
+                key={i}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '12px 16px',
+                  background: '#F7EDE8',
+                  borderRadius: 12,
+                  border: '1px solid #E8D0C8',
+                  minHeight: 44,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: item.color, flexShrink: 0 }} />
+                  <span style={{ fontSize: 13, color: '#2D1820', fontWeight: 500 }}>{item.label}</span>
+                </div>
+                <span style={{ fontSize: 12, color: '#7A4F5C', fontWeight: 500 }}>{item.date}</span>
               </div>
-              <span style={{ fontSize: 12, color: '#7A4F5C', fontWeight: 500 }}>{item.date}</span>
-            </div>
-          ))}
+            ));
+          })()}
         </div>
       </div>
 
-    </div>
+{/* PHASE INSIGHT CARD */}
+      <div style={{ padding: '0 24px 16px' }}>
+        <div
+          style={{
+            background: '#F7EDE8',
+            borderRadius: 16,
+            padding: '14px 16px',
+            border: '1px solid #E8D0C8',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+            <span style={{ fontSize: 20 }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9B3856" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="16" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12.01" y2="8" />
+              </svg>
+            </span>
+            <div style={{ flex: 1 }}>
+              <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#9B3856' }}>
+                {selectedPhaseData.name} insight
+              </p>
+              <p
+                style={{
+                  margin: '3px 0 0',
+                  fontSize: 12,
+                  color: '#7A4F5C',
+                  lineHeight: 1.5,
+                }}
+              >
+                {selectedPhaseData.whyItHappens}
+              </p>
+            </div>
+          </div>
+
+          {isInsightExpanded && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: 4, marginTop: 4 }}>
+              {selectedPhaseData.symptoms.map((sentence, index) => (
+                <div key={index} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                  <span style={{ color: '#9B3856', fontSize: 14, lineHeight: 1.5 }}>•</span>
+                  <p style={{ margin: 0, fontSize: 12, color: '#7A4F5C', lineHeight: 1.5 }}>
+                    {sentence}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 2 }}>
+            <button
+              onClick={() => setIsInsightExpanded(prev => !prev)}
+              style={{
+                background: 'none',
+                border: 'none',
+                fontSize: 12,
+                color: '#9B3856',
+                fontWeight: 600,
+                cursor: 'pointer',
+                padding: '4px 8px',
+                margin: '-4px -8px',
+                minHeight: 44,
+              }}
+            >
+              {isInsightExpanded ? 'See less' : 'See more'}
+            </button>
+            {isInsightExpanded && (
+              <button
+                onClick={() => onNavigate('insights')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: 12,
+                  color: '#9B3856',
+                  fontWeight: 600,
+                  textDecoration: 'underline',
+                  cursor: 'pointer',
+                  padding: '4px 8px',
+                  margin: '-4px -8px',
+                  minHeight: 44,
+                }}
+              >
+                Learn more →
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+          </div>
   )
 }
