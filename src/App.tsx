@@ -9,6 +9,8 @@ import { CartModal } from './components/CartModal'
 import { ProductDetailModal } from './components/ProductDetailModal'
 import { SupportChatModal } from './components/SupportChatModal'
 import { ArticleReaderModal } from './components/ArticleReaderModal'
+import { RewardsModal } from './components/RewardsModal'
+import { ProfileModal } from './components/ProfileModal'
 
 type Tab = 'home' | 'calendar' | 'log' | 'insights' | 'shop'
 
@@ -62,52 +64,53 @@ function AppMain() {
   return (
     <div
       style={{
-        width: 390,
-        height: 844,
-        background: '#FDF6F0',
-        borderRadius: 44,
-        overflow: 'hidden',
-        position: 'relative',
-        boxShadow: '0 32px 80px rgba(231, 86, 80, 0.2), 0 0 0 12px #2D1820',
+        minHeight: '100vh',
+        width: '100%',
         display: 'flex',
-        flexDirection: 'column',
-        fontFamily: 'Outfit, system-ui, sans-serif',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '24px 16px',
+        backgroundColor: '#f0dedd',
+        boxSizing: 'border-box',
       }}
     >
-      {/* Status bar */}
-      <div style={{ height: 44, background: '#FDF6F0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 28px', flexShrink: 0, zIndex: 10 }}>
-        <span style={{ fontSize: 14, fontWeight: 600, color: '#2D1820' }}>9:41</span>
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <svg width="16" height="12" viewBox="0 0 16 12" fill="#2D1820">
-            <rect x="0" y="6" width="3" height="6" rx="1" />
-            <rect x="4.5" y="4" width="3" height="8" rx="1" />
-            <rect x="9" y="2" width="3" height="10" rx="1" />
-            <rect x="13.5" y="0" width="3" height="12" rx="1" />
-          </svg>
-          <svg width="15" height="12" viewBox="0 0 15 12" fill="none" stroke="#2D1820" strokeWidth="1.5">
-            <path d="M1 3.5C3.5 1.2 6.3 0 7.5 0C8.7 0 11.5 1.2 14 3.5" />
-            <path d="M3 6C5 4.2 6.3 3.5 7.5 3.5C8.7 3.5 10 4.2 12 6" />
-            <circle cx="7.5" cy="9" r="1.5" fill="#2D1820" />
-          </svg>
-          <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
-            <rect x="0.5" y="0.5" width="21" height="11" rx="3.5" stroke="#2D1820" strokeOpacity="0.35" />
-            <rect x="2" y="2" width="16" height="8" rx="2" fill="#2D1820" />
-            <path d="M23 4.5V7.5C23.8 7.2 24.5 6.4 24.5 6C24.5 5.6 23.8 4.8 23 4.5Z" fill="#2D1820" fillOpacity="0.4" />
-          </svg>
+      {/* Mobile Device Frame Mockup */}
+      <div
+        style={{
+          width: '100%',
+          maxWidth: 390,
+          height: 844,
+          maxHeight: 'min(844px, 92vh)',
+          background: '#FDF6F0',
+          borderRadius: 48,
+          overflow: 'hidden',
+          position: 'relative',
+          border: '10px solid #2D1820',
+          boxShadow: '0 24px 60px rgba(45, 24, 32, 0.22), 0 12px 28px rgba(231, 86, 80, 0.15)',
+          display: 'flex',
+          flexDirection: 'column',
+          fontFamily: 'Outfit, system-ui, sans-serif',
+          flexShrink: 0,
+        }}
+      >
+        {/* Screen content with comfortable internal safe area padding */}
+        <div
+          style={{
+            flex: 1,
+            overflow: 'hidden',
+            position: 'relative',
+            paddingTop: 'max(env(safe-area-inset-top, 0px), 24px)',
+          }}
+        >
+          {screens[activeTab]}
         </div>
-      </div>
-
-      {/* Screen content */}
-      <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
-        {screens[activeTab]}
-      </div>
 
       {/* Global Toast Banner */}
       {toastMessage && (
         <div
           style={{
             position: 'absolute',
-            top: 52,
+            top: 24,
             left: 20,
             right: 20,
             background: '#2D1820',
@@ -133,6 +136,8 @@ function AppMain() {
       <ProductDetailModal />
       <SupportChatModal />
       <ArticleReaderModal />
+      <RewardsModal />
+      <ProfileModal />
 
       {/* Bottom nav */}
       <div
@@ -245,6 +250,7 @@ function AppMain() {
         ))}
       </div>
     </div>
+  </div>
   )
 }
 

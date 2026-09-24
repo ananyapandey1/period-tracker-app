@@ -72,7 +72,7 @@ const QUICK_SYMPTOMS_CONFIG = [
 ]
 
 export default function HomeScreen({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
-  const { setIsChatOpen, setSelectedArticle, showToast, restartOnboarding, lastPeriodStartDate } = useApp()
+  const { setIsChatOpen, setIsRewardsOpen, setIsProfileOpen, setSelectedArticle, showToast, restartOnboarding, lastPeriodStartDate } = useApp()
   const [activeSymptoms, setActiveSymptoms] = useState<string[]>([])
   const phaseCardRef = useRef<HTMLDivElement>(null)
 
@@ -151,7 +151,7 @@ export default function HomeScreen({ onNavigate }: { onNavigate: (tab: Tab) => v
 
             {/* Rewards / Gift Icon Button */}
             <button
-              onClick={() => showToast('🎉 Rewards: You have 150 Poppy Wellness points!')}
+              onClick={() => setIsRewardsOpen(true)}
               aria-label="View rewards"
               style={{
                 width: 44,
@@ -179,10 +179,7 @@ export default function HomeScreen({ onNavigate }: { onNavigate: (tab: Tab) => v
             {/* Vector-Style Illustrated Female Avatar */}
             <button
               aria-label="Profile settings"
-              onClick={() => {
-                showToast('Re-entering Poppy onboarding flow...')
-                restartOnboarding()
-              }}
+              onClick={() => setIsProfileOpen(true)}
               style={{
                 width: 44,
                 height: 44,
@@ -372,7 +369,17 @@ export default function HomeScreen({ onNavigate }: { onNavigate: (tab: Tab) => v
         <div
           role="region"
           aria-label="Cycle ring phase legend"
-          style={{ display: 'flex', justifyContent: 'center', gap: 14, marginTop: 14, flexWrap: 'wrap' }}
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexWrap: 'nowrap',
+            gap: 8,
+            marginTop: 14,
+            width: '100%',
+            padding: '0 8px',
+          }}
         >
           {[
             { key: 'Menstrual' as CyclePhase, label: 'Menstrual', color: PHASE_COLORS.Menstrual },
@@ -388,25 +395,27 @@ export default function HomeScreen({ onNavigate }: { onNavigate: (tab: Tab) => v
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 5,
-                  background: isSelected ? '#F2E8E2' : 'none',
+                  gap: 4.5,
+                  background: isSelected ? '#F2E8E2' : 'transparent',
                   border: isSelected ? '1px solid #E0CCC2' : '1px solid transparent',
-                  padding: '3px 7px',
+                  padding: isSelected ? '2px 7px' : '2px 3px',
                   cursor: 'pointer',
-                  borderRadius: 12,
+                  borderRadius: 14,
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
                   transition: 'all 0.15s ease',
                 }}
                 aria-label={`View ${phase.label} phase`}
               >
-                {/* Issue 1: Uniform solid circular dot across all 4 items */}
+                {/* Uniform solid circular dot across all 4 items */}
                 <div
                   style={{
-                    width: 8,
-                    height: 8,
+                    width: 7,
+                    height: 7,
                     borderRadius: '50%',
                     background: phase.color,
                     flexShrink: 0,
-                    boxShadow: isSelected ? `0 0 0 2px ${phase.color}44` : 'none',
+                    boxShadow: isSelected ? `0 0 0 1.5px ${phase.color}44` : 'none',
                   }}
                 />
                 <span
@@ -414,6 +423,7 @@ export default function HomeScreen({ onNavigate }: { onNavigate: (tab: Tab) => v
                     fontSize: 11,
                     color: isSelected ? '#2D1820' : '#7A4F5C',
                     fontWeight: isSelected ? 700 : 500,
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   {phase.label}

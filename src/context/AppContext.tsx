@@ -67,6 +67,10 @@ interface AppContextType {
   setSelectedProduct: (product: ProductItem | null) => void
   isChatOpen: boolean
   setIsChatOpen: (open: boolean) => void
+  isRewardsOpen: boolean
+  setIsRewardsOpen: (open: boolean) => void
+  isProfileOpen: boolean
+  setIsProfileOpen: (open: boolean) => void
   selectedArticle: ArticleItem | null
   setSelectedArticle: (article: ArticleItem | null) => void
   lastPeriodStartDate: Date
@@ -323,11 +327,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const [selectedProduct, setSelectedProduct] = useState<ProductItem | null>(null)
   const [isChatOpen, setIsChatOpen] = useState(false)
+  const [isRewardsOpen, setIsRewardsOpen] = useState(false)
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [selectedArticle, setSelectedArticle] = useState<ArticleItem | null>(null)
   const [lastPeriodStartDate, setLastPeriodStartDate] = useState<Date>(new Date(2026, 8, 1))
 
   const restartOnboarding = () => {
-    showToast('Re-entering Poppy onboarding flow...')
+    setIsProfileOpen(true)
   }
 
   const showToast = (msg: string) => {
@@ -402,6 +408,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setSelectedProduct,
         isChatOpen,
         setIsChatOpen,
+        isRewardsOpen,
+        setIsRewardsOpen,
+        isProfileOpen,
+        setIsProfileOpen,
         selectedArticle,
         setSelectedArticle,
         lastPeriodStartDate,

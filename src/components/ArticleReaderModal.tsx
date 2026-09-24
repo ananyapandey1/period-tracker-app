@@ -38,13 +38,38 @@ export const ArticleReaderModal: React.FC = () => {
         onClick={e => e.stopPropagation()}
       >
         {/* Top Fixed Bar */}
-        <div style={{ padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E8D0C8', background: '#FDF6F0' }}>
-          <span style={{ fontSize: 10, fontWeight: 700, background: '#F2D5D0', color: '#e75650', padding: '3px 10px', borderRadius: 12, textTransform: 'uppercase' }}>
-            {selectedArticle.category}
-          </span>
+        <div style={{ padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E8D0C8', background: '#FDF6F0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <button
+              onClick={() => setSelectedArticle(null)}
+              aria-label="Go back"
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: '50%',
+                background: '#F7EDE8',
+                border: '1px solid #E8D0C8',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 0,
+                color: '#2D1820',
+                transition: 'background-color 0.15s ease',
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2D1820" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 12H5M12 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <span style={{ fontSize: 10, fontWeight: 700, background: '#F2D5D0', color: '#e75650', padding: '3px 10px', borderRadius: 12, textTransform: 'uppercase' }}>
+              {selectedArticle.category}
+            </span>
+          </div>
+
           <button
             onClick={() => setSelectedArticle(null)}
-            aria-label="Close article"
+            aria-label="Close"
             style={{
               width: 34,
               height: 34,

@@ -31,7 +31,7 @@ const PAIN_COLORS = ['#A8C5B5', '#E8B87A', '#D4807A', '#c43a35']
 const ENERGY_EMOJIS = ['😴', '😑', '😐', '😊', '⚡']
 
 export default function LogScreen() {
-  const { selectedDate, setSelectedDate, logEntries, saveLogEntry } = useApp()
+  const { selectedDate, setSelectedDate, logEntries, saveLogEntry, setActiveTab } = useApp()
 
   const [flow, setFlow] = useState<string | null>(null)
   const [pain, setPain] = useState<string | null>(null)
@@ -86,13 +86,38 @@ export default function LogScreen() {
 
   return (
     <div style={{ height: '100%', overflowY: 'auto', background: '#FDF6F0' }}>
-      {/* Header with Date Selector */}
+      {/* Header with Date Selector & Back Button */}
       <div style={{ padding: '8px 24px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <p style={{ margin: 0, fontSize: 12, color: '#B89AA8' }}>Logging for</p>
-          <h2 style={{ margin: '2px 0 0', fontSize: 22, fontFamily: 'Fraunces, Georgia, serif', fontWeight: 400, color: '#2D1820' }}>
-            {selectedDate === '2026-09-17' ? 'Today (Sep 17, 2026)' : selectedDate}
-          </h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button
+            onClick={() => setActiveTab('home')}
+            aria-label="Go back"
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: '50%',
+              background: '#F7EDE8',
+              border: '1px solid #E8D0C8',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 0,
+              color: '#2D1820',
+              flexShrink: 0,
+              transition: 'background-color 0.15s ease',
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2D1820" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <div>
+            <p style={{ margin: 0, fontSize: 12, color: '#B89AA8' }}>Logging for</p>
+            <h2 style={{ margin: '2px 0 0', fontSize: 20, fontFamily: 'Fraunces, Georgia, serif', fontWeight: 400, color: '#2D1820' }}>
+              {selectedDate === '2026-09-17' ? 'Today (Sep 17, 2026)' : selectedDate}
+            </h2>
+          </div>
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
           <button

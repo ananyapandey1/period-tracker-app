@@ -56,22 +56,25 @@ export const ProductDetailModal: React.FC = () => {
           </div>
           <button
             onClick={() => setSelectedProduct(null)}
-            aria-label="Close details"
+            aria-label="Go back"
             style={{
-              width: 36,
-              height: 36,
+              width: 38,
+              height: 38,
               borderRadius: '50%',
               background: '#F7EDE8',
               border: '1px solid #E8D0C8',
-              fontSize: 16,
-              color: '#7A4F5C',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              padding: 0,
+              color: '#2D1820',
+              transition: 'background-color 0.15s ease',
             }}
           >
-            ✕
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2D1820" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
           </button>
         </div>
 

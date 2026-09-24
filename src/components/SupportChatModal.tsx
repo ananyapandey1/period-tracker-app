@@ -127,6 +127,30 @@ export const SupportChatModal: React.FC = () => {
           {/* Header Bar */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 12, borderBottom: '1px solid #E8D0C8' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <button
+                onClick={() => setIsChatOpen(false)}
+                aria-label="Go back"
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: '50%',
+                  background: '#F7EDE8',
+                  border: '1px solid #E8D0C8',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 0,
+                  color: '#2D1820',
+                  flexShrink: 0,
+                  transition: 'background-color 0.15s ease',
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2D1820" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>
+              </button>
+
               <div
                 style={{
                   width: 38,
@@ -140,6 +164,7 @@ export const SupportChatModal: React.FC = () => {
                   fontWeight: 700,
                   fontSize: 16,
                   boxShadow: '0 4px 10px rgba(231,86,80,0.3)',
+                  flexShrink: 0,
                 }}
               >
                 🌸
@@ -157,7 +182,7 @@ export const SupportChatModal: React.FC = () => {
 
             <button
               onClick={() => setIsChatOpen(false)}
-              aria-label="Close chat"
+              aria-label="Close"
               style={{
                 width: 34,
                 height: 34,
