@@ -69,6 +69,9 @@ interface AppContextType {
   setIsChatOpen: (open: boolean) => void
   selectedArticle: ArticleItem | null
   setSelectedArticle: (article: ArticleItem | null) => void
+  lastPeriodStartDate: Date
+  setLastPeriodStartDate: (date: Date) => void
+  restartOnboarding: () => void
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
@@ -321,6 +324,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedProduct, setSelectedProduct] = useState<ProductItem | null>(null)
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [selectedArticle, setSelectedArticle] = useState<ArticleItem | null>(null)
+  const [lastPeriodStartDate, setLastPeriodStartDate] = useState<Date>(new Date(2026, 8, 1))
+
+  const restartOnboarding = () => {
+    showToast('Re-entering Poppy onboarding flow...')
+  }
 
   const showToast = (msg: string) => {
     setToastMessage(msg)
@@ -396,6 +404,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setIsChatOpen,
         selectedArticle,
         setSelectedArticle,
+        lastPeriodStartDate,
+        setLastPeriodStartDate,
+        restartOnboarding,
       }}
     >
       {children}
