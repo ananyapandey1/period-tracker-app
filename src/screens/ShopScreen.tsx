@@ -1,17 +1,47 @@
 import { useState } from 'react'
-import { useApp, PRODUCTS } from '../context/AppContext'
+import { useApp, PRODUCTS, ProductCategory } from '../context/AppContext'
+import { getCycleState } from '../utils/cycleEngine'
+import { getTodayDateString } from '../utils/dateUtils'
+import { getShopRecommendations } from '../utils/shopRecommendations'
 
-const NUA_SUBTABS = [
+const NUA_CATEGORIES: ('All' | ProductCategory)[] = [
   'All',
-  'Sanitary Pads',
-  'Cramps & Pain Management',
-  'Intimate Care',
-  'Skincare & Wellness',
+  'Period Care',
+  'Cramp Relief',
+  'Intimate Hygiene',
+  'Maternity',
+  'Skin Care',
+  'Bundles & Kits',
 ]
 
 export default function ShopScreen() {
-  const { cart, addToCart, setIsCartOpen, setSelectedProduct } = useApp()
-  const [activeCategory, setActiveCategory] = useState('All')
+  const {
+    cart,
+    addToCart,
+    updateCartQuantity,
+    removeFromCart,
+    setIsCartOpen,
+    setSelectedProduct,
+    lastPeriodStartDate,
+    logEntries,
+    selectedDate,
+  } = useApp()
+
+  const [activeCategory, setActiveCategory] = useState<'All' | ProductCategory>('All')
+
+  // Dynamic cycle and symptom inputs for Just for you rail
+  const cycleState = getCycleState(lastPeriodStartDate)
+  const currentPhase = cycleState.phase.name
+  const cycleDay = cycleState.currentCycleDay
+  const todayKey = getTodayDateString()
+  const todayLogs = logEntries[todayKey] || logEntries[selectedDate] || null
+
+  const recommendations = getShopRecommendations({
+    currentPhase,
+    cycleDay,
+    todayLogs,
+    cartItems: cart,
+  })
 
   const filtered = activeCategory === 'All'
     ? PRODUCTS
@@ -84,142 +114,625 @@ export default function ShopScreen() {
         <div
           onClick={() => setIsCartOpen(true)}
           style={{
-            background: 'linear-gradient(135deg, #e75650, #c43a35)',
+            background: 'linear-gradient(135deg, #F7E7E2, #F2DCD5)',
             borderRadius: 18,
             padding: '16px 18px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             cursor: 'pointer',
-            boxShadow: '0 4px 16px rgba(231,86,80,0.25)',
+            border: '1px solid #EAD2CA',
+            boxShadow: '0 4px 16px rgba(45,24,32,0.04)',
           }}
         >
           <div>
-            <p style={{ margin: '0 0 2px', fontSize: 10, color: 'rgba(255,255,255,0.8)', fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>
+            <p style={{ margin: '0 0 2px', fontSize: 10, color: '#7A4F5C', fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase' }}>
               NUA EXCLUSIVE
             </p>
-            <p style={{ margin: '0 0 6px', fontSize: 16, fontFamily: 'Fraunces, Georgia, serif', fontWeight: 400, color: 'white' }}>
+            <p style={{ margin: '0 0 8px', fontSize: 16, fontFamily: 'Fraunces, Georgia, serif', fontWeight: 500, color: '#2D2327', lineHeight: 1.25 }}>
               Free shipping on<br />orders over ₹499
             </p>
-            <div style={{ background: 'rgba(255,255,255,0.22)', borderRadius: 20, padding: '4px 12px', display: 'inline-block' }}>
-              <span style={{ fontSize: 11, color: 'white', fontWeight: 600 }}>View cart →</span>
+            <div
+              style={{
+                background: 'rgba(255,255,255,0.85)',
+                border: '1px solid #DFCCC5',
+                borderRadius: 20,
+                padding: '4px 12px',
+                display: 'inline-block',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+              }}
+            >
+              <span style={{ fontSize: 11, color: '#2D2327', fontWeight: 600 }}>View cart →</span>
             </div>
           </div>
-          <span style={{ fontSize: 38 }}>🌸</span>
+          <span style={{ fontSize: 36, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.06))' }}>🌸</span>
         </div>
       </div>
 
-      {/* Subtabs Mirroring Nua Woman */}
-      <div style={{ padding: '14px 24px 0', display: 'flex', gap: 6, overflowX: 'auto' }}>
-        {NUA_SUBTABS.map(c => (
-          <button
-            key={c}
-            onClick={() => setActiveCategory(c)}
+      {/* "Just for you" Curated Horizontal Rail (Directly below Promo Banner) */}
+      <div style={{ padding: '18px 24px 0' }}>
+        <div style={{ marginBottom: 10 }}>
+          <h3
             style={{
-              padding: '7px 14px',
-              borderRadius: 20,
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-              background: activeCategory === c ? '#e75650' : '#F7EDE8',
-              border: `1px solid ${activeCategory === c ? '#b03e3a' : '#E8D0C8'}`,
-              fontSize: 11,
-              fontWeight: 500,
-              color: activeCategory === c ? 'white' : '#7A4F5C',
-              flexShrink: 0,
+              margin: 0,
+              fontSize: 17,
+              fontWeight: 700,
+              color: '#2D2327',
+              letterSpacing: '-0.02em',
+              lineHeight: 1.2,
             }}
           >
-            {c}
-          </button>
-        ))}
+            Just for you
+          </h3>
+          <p style={{ margin: '3px 0 0', fontSize: 12, color: '#6E5A63' }}>
+            Based on your current phase and daily logs
+          </p>
+        </div>
+
+        {/* Horizontal Scroll Container */}
+        <div
+          role="region"
+          aria-label="Personalized recommendations"
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            gap: 12,
+            overflowX: 'auto',
+            scrollbarWidth: 'none',
+            paddingBottom: 6,
+            paddingTop: 2,
+          }}
+        >
+          {recommendations.map(({ product: p, reasonBadge }) => {
+            const cartItem = cart.find(item => item.product.id === p.id)
+            const cartQty = cartItem?.quantity || 0
+
+            return (
+              <div
+                key={`rec-${p.id}`}
+                onClick={() => setSelectedProduct(p)}
+                style={{
+                  minWidth: 150,
+                  maxWidth: 150,
+                  background: '#FFFFFF',
+                  borderRadius: 14,
+                  padding: 10,
+                  border: '1px solid #F0E5DF',
+                  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.03)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                  boxSizing: 'border-box',
+                }}
+              >
+                {/* Reason Chip */}
+                <div style={{ minHeight: 18, marginBottom: 6 }}>
+                  <span
+                    style={{
+                      fontSize: 9,
+                      fontWeight: 600,
+                      color: '#B85048',
+                      background: '#FDF0EE',
+                      padding: '2px 6px',
+                      borderRadius: 12,
+                      display: 'inline-block',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      maxWidth: '100%',
+                    }}
+                  >
+                    {reasonBadge}
+                  </span>
+                </div>
+
+                {/* Product Image / Icon placeholder box */}
+                <div
+                  style={{
+                    width: '100%',
+                    height: 80,
+                    borderRadius: 8,
+                    background: p.color || '#FAF5F2',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: 6,
+                    fontSize: 30,
+                    userSelect: 'none',
+                  }}
+                >
+                  {p.emoji}
+                </div>
+
+                {/* Product Title */}
+                <p
+                  style={{
+                    margin: '0 0 8px',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: '#2D2327',
+                    lineHeight: 1.25,
+                    minHeight: 28,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                  }}
+                >
+                  {p.name}
+                </p>
+
+                {/* Footer with Price and Compact Stepper or ADD */}
+                <div
+                  style={{
+                    marginTop: 'auto',
+                    paddingTop: 6,
+                    borderTop: '1px solid #F5EBE6',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 4,
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: '#2D2327',
+                      fontFamily: 'Fraunces, Georgia, serif',
+                    }}
+                  >
+                    {p.priceFormatted}
+                  </span>
+
+                  {cartQty > 0 ? (
+                    <div
+                      onClick={e => e.stopPropagation()}
+                      role="group"
+                      aria-label={`Quantity stepper for ${p.name}`}
+                      style={{
+                        height: 26,
+                        minWidth: 54,
+                        borderRadius: 6,
+                        background: '#2D2327',
+                        color: '#FFFFFF',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '0 4px',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <button
+                        onClick={e => {
+                          e.stopPropagation()
+                          if (cartQty <= 1) {
+                            removeFromCart(p.id)
+                          } else {
+                            updateCartQuantity(p.id, -1)
+                          }
+                        }}
+                        aria-label={`Decrease quantity of ${p.name}`}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: 'white',
+                          fontSize: 13,
+                          fontWeight: 700,
+                          width: 14,
+                          height: 22,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: 0,
+                          lineHeight: 1,
+                        }}
+                      >
+                        -
+                      </button>
+
+                      <span
+                        style={{
+                          color: 'white',
+                          fontSize: 11,
+                          fontWeight: 600,
+                          minWidth: 14,
+                          textAlign: 'center',
+                          userSelect: 'none',
+                        }}
+                      >
+                        {cartQty}
+                      </span>
+
+                      <button
+                        onClick={e => {
+                          e.stopPropagation()
+                          updateCartQuantity(p.id, 1)
+                        }}
+                        aria-label={`Increase quantity of ${p.name}`}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: 'white',
+                          fontSize: 13,
+                          fontWeight: 700,
+                          width: 14,
+                          height: 22,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: 0,
+                          lineHeight: 1,
+                        }}
+                      >
+                        +
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={e => {
+                        e.stopPropagation()
+                        addToCart(p)
+                      }}
+                      aria-label={`Add ${p.name} to cart`}
+                      style={{
+                        height: 26,
+                        minWidth: 46,
+                        padding: '0 8px',
+                        borderRadius: 6,
+                        background: '#FFFFFF',
+                        border: '1.5px solid #2D2327',
+                        color: '#2D2327',
+                        fontSize: 11,
+                        fontWeight: 600,
+                        letterSpacing: 0.3,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      ADD
+                    </button>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Horizontally Scrollable Category Filter Chips */}
+      <div
+        role="tablist"
+        aria-label="Product categories"
+        style={{
+          padding: '14px 24px 0',
+          display: 'flex',
+          gap: 6,
+          overflowX: 'auto',
+          scrollbarWidth: 'none',
+        }}
+      >
+        {NUA_CATEGORIES.map(c => {
+          const isActive = activeCategory === c
+          return (
+            <button
+              key={c}
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => setActiveCategory(c)}
+              style={{
+                padding: '7px 14px',
+                borderRadius: 20,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                background: isActive ? '#e75650' : '#F7EDE8',
+                border: `1px solid ${isActive ? '#b03e3a' : '#E8D0C8'}`,
+                fontSize: 11.5,
+                fontWeight: isActive ? 600 : 500,
+                color: isActive ? 'white' : '#7A4F5C',
+                flexShrink: 0,
+                transition: 'all 0.15s ease',
+              }}
+            >
+              {c}
+            </button>
+          )
+        })}
         <div style={{ width: 16, flexShrink: 0 }} />
       </div>
 
-      {/* Products Grid */}
-      <div style={{ padding: '14px 24px 32px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      {/* Products Count Indicator */}
+      <div style={{ padding: '10px 24px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: 11, color: '#7A4F5C', fontWeight: 500 }}>
+          Showing {filtered.length} {filtered.length === 1 ? 'item' : 'items'}
+        </span>
+        {activeCategory !== 'All' && (
+          <button
+            onClick={() => setActiveCategory('All')}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: 11,
+              color: '#9B3856',
+              fontWeight: 600,
+              cursor: 'pointer',
+              padding: 0,
+            }}
+          >
+            Clear filter
+          </button>
+        )}
+      </div>
+
+      {/* 2-Column Product Grid */}
+      <div style={{ padding: '12px 16px 112px', display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 12 }}>
         {filtered.map(p => {
-          const inCart = cart.some(item => item.product.id === p.id)
+          const cartItem = cart.find(item => item.product.id === p.id)
+          const cartQty = cartItem?.quantity || 0
           return (
             <div
               key={p.id}
               onClick={() => setSelectedProduct(p)}
               style={{
-                background: p.color,
-                borderRadius: 18,
-                padding: '14px 12px 12px',
-                border: '1px solid rgba(0,0,0,0.06)',
+                background: '#FFFFFF',
+                borderRadius: 16,
+                padding: 12,
+                border: '1px solid #F0E5DF',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 8,
+                justifyContent: 'space-between',
+                height: '100%',
                 cursor: 'pointer',
-                transition: 'transform 0.15s ease',
+                boxSizing: 'border-box',
+                transition: 'transform 0.15s ease, box-shadow 0.15s ease',
               }}
             >
-              {/* Badge & Rating */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', minHeight: 20 }}>
-                {p.badge ? (
-                  <span
-                    style={{
-                      fontSize: 9,
-                      fontWeight: 700,
-                      letterSpacing: 0.5,
-                      background: p.badgeColor,
-                      color: 'white',
-                      borderRadius: 20,
-                      padding: '2px 8px',
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    {p.badge}
-                  </span>
-                ) : (
-                  <span />
-                )}
-                <span style={{ fontSize: 10, color: '#7A4F5C', fontWeight: 600 }}>⭐ {p.rating}</span>
-              </div>
-
-              {/* Product Visual */}
-              <div style={{ fontSize: 32, lineHeight: 1, textAlign: 'center', padding: '6px 0' }}>
-                {p.emoji}
-              </div>
-
-              {/* Info */}
-              <div>
-                <p style={{ margin: '0 0 2px', fontSize: 13, fontWeight: 600, color: '#2D1820', lineHeight: 1.3 }}>{p.name}</p>
-                <p style={{ margin: 0, fontSize: 11, color: '#7A4F5C', lineHeight: 1.3 }}>{p.sub}</p>
-              </div>
-
-              {/* Price & Add to Cart */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: 4 }}>
-                <div>
-                  <p style={{ margin: 0, fontSize: 15, fontFamily: 'Fraunces, Georgia, serif', fontWeight: 600, color: '#2D1820' }}>
-                    {p.priceFormatted}
-                  </p>
-                  <p style={{ margin: 0, fontSize: 10, color: '#B89AA8' }}>{p.unit}</p>
-                </div>
-                <button
-                  onClick={e => {
-                    e.stopPropagation()
-                    addToCart(p)
-                  }}
-                  aria-label={`Add ${p.name} to cart`}
+              {/* Top Media Box with fixed 4:3 aspect ratio */}
+              <div
+                style={{
+                  width: '100%',
+                  aspectRatio: '4 / 3',
+                  borderRadius: 12,
+                  background: p.color || '#FAF5F2',
+                  position: 'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                  marginBottom: 10,
+                  flexShrink: 0,
+                }}
+              >
+                {/* Floating Rating Badge */}
+                <div
                   style={{
-                    width: 34,
-                    height: 34,
-                    borderRadius: 10,
-                    background: inCart ? '#e75650' : 'white',
-                    border: `1.5px solid ${inCart ? '#b03e3a' : '#E8D0C8'}`,
-                    cursor: 'pointer',
+                    position: 'absolute',
+                    top: 6,
+                    left: 6,
+                    background: 'rgba(255, 255, 255, 0.92)',
+                    backdropFilter: 'blur(4px)',
+                    padding: '2px 6px',
+                    borderRadius: 6,
+                    fontSize: 10,
+                    fontWeight: 600,
+                    color: '#2D2327',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    color: inCart ? 'white' : '#e75650',
-                    fontSize: 16,
-                    fontWeight: 700,
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
+                    gap: 2,
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.06)',
                   }}
                 >
-                  {inCart ? '✓' : '+'}
-                </button>
+                  <span style={{ fontSize: 9 }}>★</span>
+                  <span>{p.rating}</span>
+                </div>
+
+                {/* Product Emoji Illustration */}
+                <div style={{ fontSize: 34, lineHeight: 1, userSelect: 'none' }}>
+                  {p.emoji}
+                </div>
+              </div>
+
+              {/* Content Section (Middle) */}
+              <div style={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+                {/* Single Compact Benefit Chip */}
+                <div style={{ minHeight: 20, display: 'flex', alignItems: 'center', marginBottom: 6 }}>
+                  {p.badge && (
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 600,
+                        color: '#B85048',
+                        background: '#FDF0EE',
+                        border: '1px solid rgba(184, 80, 72, 0.15)',
+                        borderRadius: 12,
+                        padding: '2px 8px',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        maxWidth: '100%',
+                      }}
+                    >
+                      {p.badge}
+                    </span>
+                  )}
+                </div>
+
+                {/* Product Title clamped to 2 lines with fixed min-height for uniform baseline */}
+                <p
+                  style={{
+                    margin: '0 0 4px',
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    color: '#2D2327',
+                    lineHeight: 1.3,
+                    minHeight: 33,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                  }}
+                >
+                  {p.name}
+                </p>
+
+                {/* Subtitle / Pack Info truncated to 1 line */}
+                <p
+                  style={{
+                    margin: '0 0 8px',
+                    fontSize: 11,
+                    color: '#6E5A63',
+                    lineHeight: 1.25,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {p.sub}
+                </p>
+              </div>
+
+              {/* Footer Action Area (Bottom Anchored) */}
+              <div
+                style={{
+                  marginTop: 'auto',
+                  paddingTop: 8,
+                  borderTop: '1px solid #F5EBE6',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 6,
+                }}
+              >
+                <div>
+                  <p style={{ margin: 0, fontSize: 14, fontFamily: 'Fraunces, Georgia, serif', fontWeight: 700, color: '#2D2327' }}>
+                    {p.priceFormatted}
+                  </p>
+                  <p style={{ margin: 0, fontSize: 10, color: '#8C7A82' }}>{p.unit}</p>
+                </div>
+
+                {/* Quick-Commerce Stepper or ADD Pill */}
+                {cartQty > 0 ? (
+                  <div
+                    onClick={e => e.stopPropagation()}
+                    role="group"
+                    aria-label={`Quantity stepper for ${p.name}`}
+                    style={{
+                      height: 32,
+                      minWidth: 68,
+                      borderRadius: 8,
+                      background: '#2D2327',
+                      color: '#FFFFFF',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '0 6px',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <button
+                      onClick={e => {
+                        e.stopPropagation()
+                        if (cartQty <= 1) {
+                          removeFromCart(p.id)
+                        } else {
+                          updateCartQuantity(p.id, -1)
+                        }
+                      }}
+                      aria-label={`Decrease quantity of ${p.name}`}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'white',
+                        fontSize: 15,
+                        fontWeight: 700,
+                        width: 18,
+                        height: 28,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: 0,
+                        lineHeight: 1,
+                      }}
+                    >
+                      -
+                    </button>
+
+                    <span
+                      style={{
+                        color: 'white',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        minWidth: 16,
+                        textAlign: 'center',
+                        userSelect: 'none',
+                      }}
+                    >
+                      {cartQty}
+                    </span>
+
+                    <button
+                      onClick={e => {
+                        e.stopPropagation()
+                        updateCartQuantity(p.id, 1)
+                      }}
+                      aria-label={`Increase quantity of ${p.name}`}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'white',
+                        fontSize: 15,
+                        fontWeight: 700,
+                        width: 18,
+                        height: 28,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: 0,
+                        lineHeight: 1,
+                      }}
+                    >
+                      +
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={e => {
+                      e.stopPropagation()
+                      addToCart(p)
+                    }}
+                    aria-label={`Add ${p.name} to cart`}
+                    style={{
+                      height: 32,
+                      minWidth: 64,
+                      padding: '0 12px',
+                      borderRadius: 8,
+                      background: '#FFFFFF',
+                      border: '1.5px solid #2D2327',
+                      color: '#2D2327',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      letterSpacing: 0.5,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      transition: 'background 0.15s ease',
+                    }}
+                  >
+                    ADD
+                  </button>
+                )}
               </div>
             </div>
           )
