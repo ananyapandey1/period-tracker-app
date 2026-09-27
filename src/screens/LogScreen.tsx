@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useApp, LogEntry } from '../context/AppContext'
+import { getTodayDateString, parseDateString, formatHeaderDate } from '../utils/dateUtils'
 
 const FLOW_OPTIONS = ['Light', 'Medium', 'Heavy', 'Spotting', 'None']
 const PAIN_OPTIONS = ['None', 'Mild', 'Moderate', 'Severe']
@@ -84,54 +85,60 @@ export default function LogScreen() {
     setTimeout(() => setSaved(false), 2000)
   }
 
+  const todayStr = getTodayDateString()
+  const selectedDateObj = parseDateString(selectedDate)
+  const isToday = selectedDate === todayStr
+
+  // Clean, single-line dynamic date title (e.g. "Today, 27 September" or "16 September")
+  const formattedHeaderDate = isToday
+    ? `Today, ${formatHeaderDate(selectedDateObj)}`
+    : selectedDateObj.getFullYear() !== new Date().getFullYear()
+      ? new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).format(selectedDateObj)
+      : formatHeaderDate(selectedDateObj)
+
   return (
     <div style={{ height: '100%', overflowY: 'auto', background: '#FDF6F0' }}>
-      {/* Header with Date Selector & Back Button */}
-      <div style={{ padding: '8px 24px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button
-            onClick={() => setActiveTab('home')}
-            aria-label="Go back"
+      {/* Streamlined Header with Back Button and Date */}
+      <div style={{ padding: '12px 24px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
+        <button
+          onClick={() => setActiveTab('home')}
+          aria-label="Go back"
+          style={{
+            width: 38,
+            height: 38,
+            borderRadius: '50%',
+            background: '#F7EDE8',
+            border: '1px solid #E8D0C8',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 0,
+            color: '#2D1820',
+            flexShrink: 0,
+            transition: 'background-color 0.15s ease',
+          }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2D1820" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <div style={{ minWidth: 0 }}>
+          <p style={{ margin: 0, fontSize: 12, color: '#B89AA8', fontWeight: 500, letterSpacing: '0.02em' }}>Logging for</p>
+          <h2
             style={{
-              width: 38,
-              height: 38,
-              borderRadius: '50%',
-              background: '#F7EDE8',
-              border: '1px solid #E8D0C8',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: 0,
+              margin: '2px 0 0',
+              fontSize: 20,
+              fontFamily: 'Fraunces, Georgia, serif',
+              fontWeight: 400,
               color: '#2D1820',
-              flexShrink: 0,
-              transition: 'background-color 0.15s ease',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
             }}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2D1820" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <div>
-            <p style={{ margin: 0, fontSize: 12, color: '#B89AA8' }}>Logging for</p>
-            <h2 style={{ margin: '2px 0 0', fontSize: 20, fontFamily: 'Fraunces, Georgia, serif', fontWeight: 400, color: '#2D1820' }}>
-              {selectedDate === '2026-09-17' ? 'Today (Sep 17, 2026)' : selectedDate}
-            </h2>
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button
-            onClick={() => setSelectedDate('2026-09-16')}
-            style={{ padding: '4px 10px', borderRadius: 12, background: '#F2D5D0', border: 'none', color: '#e75650', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
-          >
-            Sep 16
-          </button>
-          <button
-            onClick={() => setSelectedDate('2026-09-17')}
-            style={{ padding: '4px 10px', borderRadius: 12, background: selectedDate === '2026-09-17' ? '#e75650' : '#F2D5D0', border: 'none', color: selectedDate === '2026-09-17' ? 'white' : '#e75650', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
-          >
-            Today
-          </button>
+            {formattedHeaderDate}
+          </h2>
         </div>
       </div>
 
