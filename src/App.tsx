@@ -62,7 +62,7 @@ function AppMain() {
   }
 
   return (
-    <div className="w-full min-h-screen bg-[#FBF8F5] p-0 m-0 overflow-x-hidden sm:min-h-screen sm:flex sm:items-center sm:justify-center sm:p-6 sm:bg-[#F4ECE6] box-border touch-manipulation">
+    <div className="w-full min-h-screen bg-[#f0dedd] p-0 m-0 overflow-x-hidden sm:min-h-screen sm:flex sm:items-center sm:justify-center sm:p-6 sm:bg-[#f0dedd] box-border touch-manipulation">
       {/* Mobile Device Frame Mockup (Hidden bezel on mobile, phone frame on sm+) */}
       <div className="w-full min-h-screen h-[100dvh] max-w-full border-none rounded-none shadow-none bg-[#FDF6F0] relative flex flex-col font-['Outfit',system-ui,sans-serif] sm:min-h-0 sm:w-[412px] sm:h-[860px] sm:max-h-[92vh] sm:rounded-[44px] sm:border-[10px] sm:border-[#2D2327] sm:shadow-2xl sm:overflow-hidden sm:shrink-0">
         {/* Screen content with comfortable internal safe area padding */}

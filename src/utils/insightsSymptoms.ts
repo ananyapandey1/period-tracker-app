@@ -54,7 +54,7 @@ export const BASELINE_SYMPTOM_CATALOG: Omit<SymptomInsightItem, 'frequency' | 't
   {
     id: 'cramps',
     name: 'Cramps',
-    emoji: '🌊',
+    emoji: '😣',
     primaryPhase: 'Period',
     color: PHASE_COLORS.Menstrual, // #C86D6B
     details: 'Uterine contractions as endometrium sheds',
@@ -63,7 +63,7 @@ export const BASELINE_SYMPTOM_CATALOG: Omit<SymptomInsightItem, 'frequency' | 't
   {
     id: 'bloating',
     name: 'Bloating',
-    emoji: '💨',
+    emoji: '🎈',
     primaryPhase: 'Luteal',
     color: PHASE_COLORS.Luteal, // #B39ABF (Corrected Luteal purple token)
     details: 'Peaks 2-3 days before period due to progesterone',
@@ -72,7 +72,7 @@ export const BASELINE_SYMPTOM_CATALOG: Omit<SymptomInsightItem, 'frequency' | 't
   {
     id: 'tired',
     name: 'Fatigue',
-    emoji: '🌙',
+    emoji: '🥱',
     primaryPhase: 'Luteal',
     color: PHASE_COLORS.Luteal, // #B39ABF
     details: 'Common in late luteal as progesterone crests',
@@ -81,7 +81,7 @@ export const BASELINE_SYMPTOM_CATALOG: Omit<SymptomInsightItem, 'frequency' | 't
   {
     id: 'headache',
     name: 'Headache',
-    emoji: '💫',
+    emoji: '🤕',
     primaryPhase: 'Ovulation',
     color: PHASE_COLORS.Ovulation, // #E2A966
     details: 'Correlates with rapid mid-cycle estrogen fluctuation',
@@ -99,7 +99,7 @@ export const BASELINE_SYMPTOM_CATALOG: Omit<SymptomInsightItem, 'frequency' | 't
   {
     id: 'tender',
     name: 'Breast tenderness',
-    emoji: '🌸',
+    emoji: '💗',
     primaryPhase: 'Luteal',
     color: PHASE_COLORS.Luteal, // #B39ABF
     details: 'Progesterone-driven breast tissue swelling',
@@ -108,7 +108,7 @@ export const BASELINE_SYMPTOM_CATALOG: Omit<SymptomInsightItem, 'frequency' | 't
   {
     id: 'backpain',
     name: 'Back pain',
-    emoji: '🔮',
+    emoji: '🦴',
     primaryPhase: 'Period',
     color: PHASE_COLORS.Menstrual, // #C86D6B
     details: 'Referred lower back sacral tension from uterine spasms',
@@ -117,7 +117,7 @@ export const BASELINE_SYMPTOM_CATALOG: Omit<SymptomInsightItem, 'frequency' | 't
   {
     id: 'acne',
     name: 'Skin breakouts',
-    emoji: '🫧',
+    emoji: '🔴',
     primaryPhase: 'Luteal',
     color: PHASE_COLORS.Luteal, // #B39ABF
     details: 'Late luteal sebum production shifts with androgen balance',
