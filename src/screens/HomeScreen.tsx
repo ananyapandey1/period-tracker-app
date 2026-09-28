@@ -12,63 +12,12 @@ import {
 type Tab = 'home' | 'calendar' | 'log' | 'insights'
 
 const QUICK_SYMPTOMS_CONFIG = [
-  {
-    id: 'cramps',
-    label: 'Cramps',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M2 12c.6 0 1.2-.2 1.7-.6l3.6-2.8c1-.8 2.4-.8 3.4 0l3.6 2.8c1 .8 2.4.8 3.4 0l3.6-2.8c.5-.4 1.1-.6 1.7-.6" />
-        <path d="M2 17c.6 0 1.2-.2 1.7-.6l3.6-2.8c1-.8 2.4-.8 3.4 0l3.6 2.8c1 .8 2.4.8 3.4 0l3.6-2.8c.5-.4 1.1-.6 1.7-.6" />
-      </svg>
-    ),
-  },
-  {
-    id: 'bloating',
-    label: 'Bloating',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="7" />
-        <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
-      </svg>
-    ),
-  },
-  {
-    id: 'headache',
-    label: 'Headache',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-      </svg>
-    ),
-  },
-  {
-    id: 'tired',
-    label: 'Tired',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-      </svg>
-    ),
-  },
-  {
-    id: 'energized',
-    label: 'Energized',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 3v3m0 12v3M3 12h3m12 0h3m-3.5-6.5l-2 2m-7 7l-2 2m11 0l-2-2m-7-7l-2-2" />
-        <circle cx="12" cy="12" r="3" />
-      </svg>
-    ),
-  },
-  {
-    id: 'tender',
-    label: 'Tender',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-      </svg>
-    ),
-  },
+  { id: 'cramps', label: 'Cramps', emoji: '😣' },
+  { id: 'bloating', label: 'Bloating', emoji: '🎈' },
+  { id: 'headache', label: 'Headache', emoji: '🤕' },
+  { id: 'tired', label: 'Fatigue', emoji: '🥱' },
+  { id: 'energized', label: 'Energized', emoji: '⚡' },
+  { id: 'tender', label: 'Tender', emoji: '💗' },
 ]
 
 export default function HomeScreen({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
@@ -481,7 +430,7 @@ export default function HomeScreen({ onNavigate }: { onNavigate: (tab: Tab) => v
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {s.icon}
+                  <span style={{ fontSize: 20, lineHeight: 1 }}>{s.emoji}</span>
                 </div>
                 <span style={{ fontSize: 11, fontWeight: 500, color: isActive ? '#2D1820' : '#7A4F5C' }}>
                   {s.label}

@@ -1,38 +1,36 @@
 import React, { useState, useEffect } from 'react'
 import { useApp, LogEntry } from '../context/AppContext'
 import { getTodayDateString, parseDateString, formatHeaderDate } from '../utils/dateUtils'
-
 const FLOW_OPTIONS = ['Light', 'Medium', 'Heavy', 'Spotting', 'None']
 const PAIN_OPTIONS = ['None', 'Mild', 'Moderate', 'Severe']
 
 const SYMPTOMS_PHYSICAL = [
-  { id: 'cramps', label: 'Cramps', emoji: '🌊' },
-  { id: 'bloating', label: 'Bloating', emoji: '💨' },
-  { id: 'headache', label: 'Headache', emoji: '💫' },
-  { id: 'backpain', label: 'Back pain', emoji: '🔮' },
-  { id: 'tender', label: 'Breast tender', emoji: '🌸' },
-  { id: 'acne', label: 'Acne', emoji: '🫧' },
-  { id: 'tired', label: 'Fatigue', emoji: '🌙' },
-  { id: 'nausea', label: 'Nausea', emoji: '🌿' },
+  { id: 'cramps', label: 'Cramps', emoji: '😣' },
+  { id: 'bloating', label: 'Bloating', emoji: '🎈' },
+  { id: 'headache', label: 'Headache', emoji: '🤕' },
+  { id: 'backpain', label: 'Back pain', emoji: '🦴' },
+  { id: 'tender', label: 'Breast tender', emoji: '💗' },
+  { id: 'acne', label: 'Acne', emoji: '🔴' },
+  { id: 'tired', label: 'Fatigue', emoji: '🥱' },
+  { id: 'nausea', label: 'Nausea', emoji: '🤢' },
 ]
 
 const SYMPTOMS_EMOTIONAL = [
-  { id: 'anxious', label: 'Anxious', emoji: '🌀' },
-  { id: 'irritable', label: 'Irritable', emoji: '⚡' },
-  { id: 'sad', label: 'Low mood', emoji: '🌧️' },
-  { id: 'happy', label: 'Happy', emoji: '☀️' },
-  { id: 'calm', label: 'Calm', emoji: '🌊' },
-  { id: 'sensitive', label: 'Sensitive', emoji: '🌺' },
+  { id: 'anxious', label: 'Anxious', emoji: '😰' },
+  { id: 'irritable', label: 'Irritable', emoji: '😠' },
+  { id: 'sad', label: 'Low mood', emoji: '😔' },
+  { id: 'happy', label: 'Happy', emoji: '😊' },
+  { id: 'calm', label: 'Calm', emoji: '😌' },
+  { id: 'sensitive', label: 'Sensitive', emoji: '🥺' },
 ]
 
 const ENERGY = ['Exhausted', 'Low', 'Moderate', 'High', 'Very high']
-const SLEEP = ['< 5 hrs', '5-6 hrs', '6-7 hrs', '7-8 hrs', '8+ hrs']
-
-const PAIN_COLORS = ['#A8C5B5', '#E8B87A', '#D4807A', '#c43a35']
 const ENERGY_EMOJIS = ['😴', '😑', '😐', '😊', '⚡']
+const SLEEP = ['< 5 hrs', '5-6 hrs', '6-7 hrs', '7-8 hrs', '8+ hrs']
+const PAIN_COLORS = ['#A8C5B5', '#E8B87A', '#D4807A', '#c43a35']
 
 export default function LogScreen() {
-  const { selectedDate, setSelectedDate, logEntries, saveLogEntry, setActiveTab } = useApp()
+  const { selectedDate, logEntries, saveLogEntry, setActiveTab } = useApp()
 
   const [flow, setFlow] = useState<string | null>(null)
   const [pain, setPain] = useState<string | null>(null)
@@ -157,11 +155,13 @@ export default function LogScreen() {
           {PAIN_OPTIONS.map((p, i) => (
             <div key={p} style={{ flex: 1 }}>
               <button
+                type="button"
                 onClick={() => setPain(p)}
+                className="rounded-2xl transition-all duration-150"
                 style={{
                   width: '100%',
                   padding: '10px 0',
-                  borderRadius: 12,
+                  borderRadius: 14,
                   background: pain === p ? PAIN_COLORS[i] : '#F7EDE8',
                   border: `1px solid ${pain === p ? 'transparent' : '#E8D0C8'}`,
                   fontSize: 11,
@@ -209,29 +209,39 @@ export default function LogScreen() {
 
       {/* Energy */}
       <Section title="Energy">
-        <div style={{ display: 'flex', gap: 6 }}>
-          {ENERGY.map((e, i) => (
-            <button
-              key={e}
-              onClick={() => setEnergy(e)}
-              style={{
-                flex: 1,
-                padding: '10px 4px',
-                borderRadius: 12,
-                cursor: 'pointer',
-                border: `1px solid ${energy === e ? '#e75650' : '#E8D0C8'}`,
-                background: energy === e ? '#e75650' : '#F7EDE8',
-                fontSize: 10,
-                fontWeight: 600,
-                color: energy === e ? 'white' : '#7A4F5C',
-                textAlign: 'center',
-              }}
-            >
-              {ENERGY_EMOJIS[i]}
-              <br />
-              <span style={{ fontSize: 9 }}>{e}</span>
-            </button>
-          ))}
+        <div style={{ display: 'flex', gap: 8 }}>
+          {ENERGY.map((e, i) => {
+            const isSelected = energy === e
+            return (
+              <button
+                key={e}
+                type="button"
+                onClick={() => setEnergy(e)}
+                className="transition-all duration-150"
+                style={{
+                  flex: 1,
+                  padding: '13px 4px 11px',
+                  borderRadius: 18,
+                  cursor: 'pointer',
+                  border: `1.5px solid ${isSelected ? '#e75650' : '#ECD8D2'}`,
+                  background: isSelected ? '#e75650' : '#F7EDE8',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: isSelected ? 'white' : '#6E4D58',
+                  textAlign: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  minHeight: 76,
+                }}
+              >
+                <span style={{ fontSize: 20, lineHeight: 1 }}>{ENERGY_EMOJIS[i]}</span>
+                <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: -0.1 }}>{e}</span>
+              </button>
+            )
+          })}
         </div>
       </Section>
 
@@ -253,7 +263,7 @@ export default function LogScreen() {
           rows={3}
           style={{
             width: '100%',
-            borderRadius: 12,
+            borderRadius: 14,
             padding: '12px 14px',
             background: '#F7EDE8',
             border: '1px solid #E8D0C8',
@@ -284,6 +294,7 @@ export default function LogScreen() {
             color: 'white',
             boxShadow: '0 4px 16px rgba(231, 86, 80, 0.3)',
             letterSpacing: 0.3,
+            transition: 'background 0.2s ease',
           }}
         >
           {saved ? '✓ Saved log entry' : 'Save log entry'}
@@ -307,10 +318,12 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Chip({ label, active, onClick, small }: { label: string; active: boolean; onClick: () => void; small?: boolean }) {
   return (
     <button
+      type="button"
       onClick={onClick}
+      className="rounded-2xl transition-all duration-150"
       style={{
-        padding: small ? '7px 10px' : '8px 14px',
-        borderRadius: 20,
+        padding: small ? '7px 11px' : '8px 14px',
+        borderRadius: 16,
         background: active ? '#e75650' : '#F7EDE8',
         border: `1px solid ${active ? '#b03e3a' : '#E8D0C8'}`,
         fontSize: small ? 11 : 13,
@@ -325,24 +338,41 @@ function Chip({ label, active, onClick, small }: { label: string; active: boolea
   )
 }
 
-function SymptomButton({ emoji, label, active, onClick }: { emoji: string; label: string; active: boolean; onClick: () => void }) {
+function SymptomButton({
+  emoji,
+  label,
+  active,
+  onClick,
+}: {
+  emoji: string
+  label: string
+  active: boolean
+  onClick: () => void
+}) {
   return (
     <button
+      type="button"
       onClick={onClick}
+      className="rounded-2xl transition-all duration-150"
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 8,
-        padding: '10px 12px',
-        borderRadius: 12,
+        gap: 10,
+        padding: '11px 14px',
+        borderRadius: 16,
         background: active ? '#e75650' : '#F7EDE8',
         border: `1px solid ${active ? '#b03e3a' : '#E8D0C8'}`,
         cursor: 'pointer',
         textAlign: 'left',
+        color: active ? '#FFFFFF' : '#4A2E35',
+        width: '100%',
+        boxSizing: 'border-box',
       }}
     >
-      <span style={{ fontSize: 16 }}>{emoji}</span>
-      <span style={{ fontSize: 12, fontWeight: 500, color: active ? 'white' : '#7A4F5C' }}>{label}</span>
+      <span style={{ fontSize: 18, lineHeight: 1, flexShrink: 0 }}>{emoji}</span>
+      <span style={{ fontSize: 13, fontWeight: 500, color: 'inherit', letterSpacing: 0.1 }}>
+        {label}
+      </span>
     </button>
   )
 }
