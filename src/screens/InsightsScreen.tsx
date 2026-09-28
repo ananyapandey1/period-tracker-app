@@ -488,8 +488,8 @@ export default function InsightsScreen() {
                         tabIndex={0}
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ fontSize: 15 }}>{item.emoji}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                            <span style={{ fontSize: 16, lineHeight: 1, flexShrink: 0 }}>{item.emoji}</span>
                             <span style={{ fontWeight: 600, fontSize: 13, color: '#2D1820' }}>{item.name}</span>
                             {item.isFallback && (
                               <span
