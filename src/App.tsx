@@ -62,100 +62,65 @@ function AppMain() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        width: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px 16px',
-        backgroundColor: '#f0dedd',
-        boxSizing: 'border-box',
-      }}
-    >
-      {/* Mobile Device Frame Mockup */}
-      <div
-        style={{
-          width: '100%',
-          maxWidth: 390,
-          height: 844,
-          maxHeight: 'min(844px, 92vh)',
-          background: '#FDF6F0',
-          borderRadius: 48,
-          overflow: 'hidden',
-          position: 'relative',
-          border: '10px solid #2D1820',
-          boxShadow: '0 24px 60px rgba(45, 24, 32, 0.22), 0 12px 28px rgba(231, 86, 80, 0.15)',
-          display: 'flex',
-          flexDirection: 'column',
-          fontFamily: 'Outfit, system-ui, sans-serif',
-          flexShrink: 0,
-        }}
-      >
+    <div className="w-full min-h-screen bg-[#FBF8F5] p-0 m-0 overflow-x-hidden sm:min-h-screen sm:flex sm:items-center sm:justify-center sm:p-6 sm:bg-[#F4ECE6] box-border touch-manipulation">
+      {/* Mobile Device Frame Mockup (Hidden bezel on mobile, phone frame on sm+) */}
+      <div className="w-full min-h-screen h-[100dvh] max-w-full border-none rounded-none shadow-none bg-[#FDF6F0] relative flex flex-col font-['Outfit',system-ui,sans-serif] sm:min-h-0 sm:w-[412px] sm:h-[860px] sm:max-h-[92vh] sm:rounded-[44px] sm:border-[10px] sm:border-[#2D2327] sm:shadow-2xl sm:overflow-hidden sm:shrink-0">
         {/* Screen content with comfortable internal safe area padding */}
-        <div
-          style={{
-            flex: 1,
-            overflow: 'hidden',
-            position: 'relative',
-            paddingTop: 'max(env(safe-area-inset-top, 0px), 24px)',
-          }}
-        >
+        <div className="flex-1 overflow-hidden relative pt-[max(env(safe-area-inset-top),0.75rem)] sm:pt-6">
           {screens[activeTab]}
         </div>
 
-      {/* Global Toast Banner */}
-      {toastMessage && (
-        <div
+        {/* Global Toast Banner */}
+        {toastMessage && (
+          <div
+            style={{
+              position: 'absolute',
+              top: 'max(env(safe-area-inset-top, 0px), 16px)',
+              left: 20,
+              right: 20,
+              background: '#2D1820',
+              color: 'white',
+              borderRadius: 14,
+              padding: '10px 14px',
+              fontSize: 12,
+              fontWeight: 500,
+              boxShadow: '0 8px 24px rgba(45,24,32,0.3)',
+              zIndex: 90,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              animation: 'fadeIn 0.2s ease',
+            }}
+          >
+            <span>{toastMessage}</span>
+          </div>
+        )}
+
+        {/* Modals */}
+        <CartModal />
+        <ProductDetailModal />
+        <SupportChatModal />
+        <ArticleReaderModal />
+        <RewardsModal />
+        <ProfileModal />
+
+        {/* Bottom nav */}
+        <nav
           style={{
-            position: 'absolute',
-            top: 24,
-            left: 20,
-            right: 20,
-            background: '#2D1820',
-            color: 'white',
-            borderRadius: 14,
-            padding: '10px 14px',
-            fontSize: 12,
-            fontWeight: 500,
-            boxShadow: '0 8px 24px rgba(45,24,32,0.3)',
-            zIndex: 90,
+            background: '#FDF6F0',
+            borderTop: '1px solid #E8D0C8',
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            animation: 'fadeIn 0.2s ease',
+            alignItems: 'flex-start',
+            paddingTop: 8,
+            paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 18px)',
+            paddingLeft: 4,
+            paddingRight: 4,
+            flexShrink: 0,
+            gap: 0,
+            zIndex: 10,
           }}
+          className="w-full shrink-0 z-10 touch-manipulation min-h-[72px] sm:min-h-[83px]"
         >
-          <span>{toastMessage}</span>
-        </div>
-      )}
-
-      {/* Modals */}
-      <CartModal />
-      <ProductDetailModal />
-      <SupportChatModal />
-      <ArticleReaderModal />
-      <RewardsModal />
-      <ProfileModal />
-
-      {/* Bottom nav */}
-      <div
-        style={{
-          height: 83,
-          background: '#FDF6F0',
-          borderTop: '1px solid #E8D0C8',
-          display: 'flex',
-          alignItems: 'flex-start',
-          paddingTop: 8,
-          paddingBottom: 20,
-          paddingLeft: 4,
-          paddingRight: 4,
-          flexShrink: 0,
-          gap: 0,
-          zIndex: 10,
-        }}
-      >
         {/* Home & Calendar */}
         {(['home', 'calendar'] as Tab[]).map(id => (
           <button
@@ -248,7 +213,7 @@ function AppMain() {
             </span>
           </button>
         ))}
-      </div>
+      </nav>
     </div>
   </div>
   )
