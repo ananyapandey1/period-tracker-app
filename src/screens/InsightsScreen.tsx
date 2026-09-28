@@ -44,7 +44,7 @@ export default function InsightsScreen() {
     : ARTICLES.filter(a => a.category === articleCategory)
 
   return (
-    <div style={{ height: '100%', overflowY: 'auto', background: '#FDF6F0' }}>
+    <div style={{ height: '100%', overflowY: 'auto', background: '#FDF6F0', paddingBottom: 120 }}>
       {/* Header */}
       <div style={{ padding: '8px 24px 16px' }}>
         <p style={{ margin: 0, fontSize: 12, color: '#B89AA8' }}>Cycle intelligence & education</p>

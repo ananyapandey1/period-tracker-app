@@ -107,19 +107,21 @@ function AppMain() {
         {/* Bottom nav */}
         <nav
           style={{
-            background: '#FDF6F0',
+            background: 'rgba(253, 246, 240, 0.95)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
             borderTop: '1px solid #E8D0C8',
             display: 'flex',
             alignItems: 'flex-start',
             paddingTop: 8,
-            paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 18px)',
+            paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 20px)',
             paddingLeft: 4,
             paddingRight: 4,
             flexShrink: 0,
             gap: 0,
-            zIndex: 10,
+            zIndex: 40,
           }}
-          className="w-full shrink-0 z-10 touch-manipulation min-h-[72px] sm:min-h-[83px]"
+          className="fixed bottom-0 left-0 right-0 sm:absolute sm:bottom-0 sm:left-0 sm:right-0 w-full z-40 touch-manipulation min-h-[76px] sm:min-h-[83px]"
         >
         {/* Home & Calendar */}
         {(['home', 'calendar'] as Tab[]).map(id => (

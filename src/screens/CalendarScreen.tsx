@@ -130,7 +130,7 @@ export default function CalendarScreen() {
   }
 
   return (
-    <div style={{ height: '100%', overflowY: 'auto', background: '#FDF6F0', position: 'relative', paddingBottom: 96 }}>
+    <div style={{ height: '100%', overflowY: 'auto', background: '#FDF6F0', position: 'relative', paddingBottom: 120 }}>
       
       {/* Header */}
       <div style={{ padding: '8px 24px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

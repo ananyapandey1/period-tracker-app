@@ -97,7 +97,7 @@ export default function LogScreen() {
       : formatHeaderDate(selectedDateObj)
 
   return (
-    <div style={{ height: '100%', overflowY: 'auto', background: '#FDF6F0' }}>
+    <div style={{ height: '100%', overflowY: 'auto', background: '#FDF6F0', paddingBottom: 120 }}>
       {/* Streamlined Header with Back Button and Date */}
       <div style={{ padding: '12px 24px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
         <button

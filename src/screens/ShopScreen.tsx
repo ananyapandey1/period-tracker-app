@@ -50,7 +50,7 @@ export default function ShopScreen() {
   const totalCartCount = cart.reduce((acc, item) => acc + item.quantity, 0)
 
   return (
-    <div style={{ height: '100%', overflowY: 'auto', background: '#FDF6F0' }}>
+    <div style={{ height: '100%', overflowY: 'auto', background: '#FDF6F0', paddingBottom: 120 }}>
       
       {/* Header */}
       <div style={{ padding: '8px 24px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>

@@ -112,7 +112,7 @@ export default function HomeScreen({ onNavigate }: { onNavigate: (tab: Tab) => v
   }
 
   return (
-    <div style={{ height: '100%', overflowY: 'auto', background: '#FDF6F0', position: 'relative' }}>
+    <div style={{ height: '100%', overflowY: 'auto', background: '#FDF6F0', position: 'relative', paddingBottom: 120 }}>
       
       {/* SECTION 1: HEADER (Issue 4: Restored chat and gift icons alongside avatar) */}
       <div style={{ padding: '8px 24px 0' }}>
