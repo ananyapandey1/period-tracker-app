@@ -35,6 +35,7 @@ export interface UpcomingPhaseItem {
 export interface CycleStateResult {
   currentCycleDay: number;
   daysUntilNextPeriod: number;
+  ringCenterText: string;
   phase: PhaseMeta;
   periodExpectedDate: Date;
   periodExpectedDateStr: string;
@@ -145,11 +146,32 @@ export function safeFormatDate(
   }
 }
 
+/**
+ * Dynamic ring center title copy helper:
+ * - Menstrual phase: shows active period day (e.g. "Period Day 1") or "Expected Day 1 of period" if unlogged.
+ * - Non-Menstrual phases: shows countdown to next period.
+ */
+export function getRingCenterText(
+  currentPhase: string,
+  cycleDay: number,
+  daysUntilNextPeriod: number,
+  isPeriodLogged?: boolean
+): string {
+  if (currentPhase.toLowerCase() === 'menstrual') {
+    if (cycleDay === 1 && isPeriodLogged === false) {
+      return 'Expected Day 1 of period';
+    }
+    return `Period Day ${cycleDay}`;
+  }
+  return `${daysUntilNextPeriod} days until your next period`;
+}
+
 export function getCycleState(
   lastPeriodDate: Date | string | number | null | undefined,
   cycleLength = 28,
   targetDate: Date = new Date(),
-  lutealPhaseLength = 14
+  lutealPhaseLength = 14,
+  options?: { isPeriodLogged?: boolean }
 ): CycleStateResult {
   const target = new Date(targetDate);
   target.setHours(0, 0, 0, 0);
@@ -248,9 +270,17 @@ export function getCycleState(
 
   const isFertile = currentCycleDay >= fertileStartDay && currentCycleDay <= fertileEndDay;
 
+  const ringCenterText = getRingCenterText(
+    phase.name,
+    currentCycleDay,
+    daysUntilNextPeriod,
+    options?.isPeriodLogged
+  );
+
   return {
     currentCycleDay,
     daysUntilNextPeriod,
+    ringCenterText,
     phase,
     periodExpectedDate,
     periodExpectedDateStr,

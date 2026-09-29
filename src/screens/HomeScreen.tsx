@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
 import { useApp, ARTICLES } from '../context/AppContext'
-import { formatHeaderDate } from '../utils/dateUtils'
+import { formatHeaderDate, getTodayDateString } from '../utils/dateUtils'
 import {
   getCycleState,
+  getRingCenterText,
   CyclePhase,
   PHASE_COLORS,
   PHASE_CARD_DATA,
@@ -21,13 +22,36 @@ const QUICK_SYMPTOMS_CONFIG = [
 ]
 
 export default function HomeScreen({ onNavigate }: { onNavigate: (tab: Tab) => void }) {
-  const { setIsChatOpen, setIsRewardsOpen, setIsProfileOpen, setSelectedArticle, showToast, restartOnboarding, lastPeriodStartDate } = useApp()
+  const {
+    setIsChatOpen,
+    setIsRewardsOpen,
+    setIsProfileOpen,
+    setSelectedArticle,
+    showToast,
+    restartOnboarding,
+    lastPeriodStartDate,
+    logEntries,
+  } = useApp()
   const [activeSymptoms, setActiveSymptoms] = useState<string[]>([])
   const phaseCardRef = useRef<HTMLDivElement>(null)
 
+  const todayStr = getTodayDateString()
+  const todayLog = logEntries?.[todayStr]
+  const isPeriodLogged = Boolean(todayLog?.flow && todayLog.flow !== 'None')
+
   // P0: Single source of truth for all cycle and phase calculations
-  const cycleStatus = getCycleState(lastPeriodStartDate, 28, new Date())
+  const cycleStatus = getCycleState(lastPeriodStartDate, 28, new Date(), 14, { isPeriodLogged })
   const currentPhase = cycleStatus.phase.name
+
+  // Clinical conditional copy helper for ring center text
+  const getRingCenterTextCopy = () => {
+    return getRingCenterText(
+      currentPhase,
+      cycleStatus.currentCycleDay,
+      cycleStatus.daysUntilNextPeriod,
+      isPeriodLogged
+    )
+  }
 
   // Issue 3: Explicit tap-to-view state. Default is null (today's actual phase)
   const [previewedPhase, setPreviewedPhase] = useState<CyclePhase | null>(null)
@@ -284,9 +308,9 @@ export default function HomeScreen({ onNavigate }: { onNavigate: (tab: Tab) => v
               {formatHeaderDate(new Date())}
             </span>
 
-            {/* Primary Highlight: Dynamic Days until next period from single source of truth */}
+            {/* Primary Highlight: Dynamic Days until next period / Active period day from single source of truth */}
             <span style={{ fontSize: 16.5, fontFamily: 'Fraunces, Georgia, serif', fontWeight: 700, color: '#2D1820', lineHeight: 1.22, margin: '4px 0 2px' }}>
-              {cycleStatus.daysUntilNextPeriod} days until your next period
+              {getRingCenterTextCopy()}
             </span>
 
             {/* Issue 2: Restored Pill Badge treatment for maximum legibility */}
