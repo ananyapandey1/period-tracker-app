@@ -6,61 +6,89 @@
 export function getTodayDateString(): string {
   const d = new Date()
   const year = d.getFullYear()
-  const month = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
+  const month = String(d.getMonth() + 1).padStart(2, "0")
+  const day = String(d.getDate()).padStart(2, "0")
   return `${year}-${month}-${day}`
 }
 
 export function formatHeaderDate(date: Date = new Date()): string {
-  return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long' }).format(date)
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "long",
+  }).format(date)
 }
 
 export function formatMonthYear(date: Date = new Date()): string {
-  return new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(date)
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    year: "numeric",
+  }).format(date)
 }
 
 export function formatFullDate(date: Date): string {
-  return new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(date)
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(date)
 }
 
 export function parseDateString(dateStr: string): Date {
-  const [year, month, day] = dateStr.split('-').map(Number)
+  const [year, month, day] = dateStr.split("-").map(Number)
   return new Date(year, (month || 1) - 1, day || 1)
 }
 
 export function formatDateToYMD(date: Date): string {
   const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  const day = String(date.getDate()).padStart(2, "0")
   return `${year}-${month}-${day}`
 }
 
 export function formatShortDate(date: Date | string): string {
-  const d = typeof date === 'string' ? parseDateString(date) : date
-  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(d)
+  const d = typeof date === "string" ? parseDateString(date) : date
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+  }).format(d)
 }
 
 export function formatDisplayDate(date: Date | string): string {
-  const d = typeof date === 'string' ? parseDateString(date) : date
-  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(d)
+  const d = typeof date === "string" ? parseDateString(date) : date
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(d)
 }
 
-export function calculateCycleDay(currentDate: Date = new Date(), cycleLength: number = 28): number {
+export function calculateCycleDay(
+  currentDate: Date = new Date(),
+  cycleLength: number = 28,
+): number {
   // Compute day in 28-day cycle based on day of year or epoch offset
   const startOfYear = new Date(currentDate.getFullYear(), 0, 1)
-  const diffDays = Math.floor((currentDate.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24))
+  const diffDays = Math.floor(
+    (currentDate.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24),
+  )
   // Map day of year into 1..28 cycle range
   const cycleDay = (diffDays % cycleLength) + 1
   return cycleDay
 }
 
-export function getDaysUntilNextPeriod(currentDate: Date = new Date(), cycleLength: number = 28): { daysLeft: number; expectedDateStr: string } {
+export function getDaysUntilNextPeriod(
+  currentDate: Date = new Date(),
+  cycleLength: number = 28,
+): { daysLeft: number expectedDateStr: string } {
   const currentDay = calculateCycleDay(currentDate, cycleLength)
   const daysLeft = Math.max(1, cycleLength - currentDay + 1)
-  
+
   const nextDate = new Date(currentDate)
   nextDate.setDate(currentDate.getDate() + daysLeft)
-  
-  const expectedDateStr = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(nextDate)
+
+  const expectedDateStr = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+  }).format(nextDate)
   return { daysLeft, expectedDateStr }
 }
